@@ -11,6 +11,8 @@ data class Config(
     val dataDir: File,
     val simStart: Int,
     val simSpeed: Double,
+    /** When set, every page and API call asks for this password (browser sign-in box, any user name). */
+    val password: String?,
 )
 
 /** Environment variables win over a local .env file. */
@@ -35,5 +37,6 @@ fun loadConfig(): Config {
         dataDir = File(v("DATA_DIR") ?: "data"),
         simStart = start,
         simSpeed = v("SIM_SPEED")?.toDouble() ?: 30.0,
+        password = v("APP_PASSWORD"),
     )
 }

@@ -10,5 +10,5 @@ fun main() {
     val app = App(cfg)
     app.start()
     LoggerFactory.getLogger("ob").info("OB Terminal on http://localhost:{} (feed: {})", cfg.port, cfg.feed)
-    embeddedServer(Netty, port = cfg.port) { module(app) }.start(wait = true)
+    embeddedServer(Netty, port = cfg.port) { module(app, cfg.password) }.start(wait = true)
 }
