@@ -1,0 +1,1340 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>F&amp;O Field Guide · OB Terminal</title>
+<meta name="color-scheme" content="dark light">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='4' fill='%230e121a'/%3E%3Cpath d='M4 11h3V5H4zM9 9h3V5H9z' fill='%2334d399'/%3E%3Cpath d='M9 11h3V9H9z' fill='%23f87171'/%3E%3C/svg%3E">
+<script>try { const t = localStorage.getItem('ob:theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+/* F&O Field Guide. Shown inside the app at #/learn and on its own at /learn.html.
+   Colours follow the app's palette and its ob:theme setting. */
+:root, [data-theme="dark"] {
+  --paper: #07090d;
+  --surface: #0e121a;
+  --sunk: #141a25;
+  --ink: #e8ecf3;
+  --ink-2: #8e98ab;
+  --ink-3: #6f7a8d;
+  --rule: #1d2533;
+  --accent: #a78bfa;
+  --accent-soft: #1d1933;
+  --gain: #34d399;
+  --gain-soft: #0f2a22;
+  --loss: #f87171;
+  --loss-soft: #2e1719;
+  --warn: #fbbf24;
+  --warn-soft: #2a2314;
+  color-scheme: dark;
+}
+[data-theme="light"] {
+  --paper: #f3f5f8;
+  --surface: #ffffff;
+  --sunk: #eaeef3;
+  --ink: #0f1419;
+  --ink-2: #566074;
+  --ink-3: #7d879a;
+  --rule: #e1e6ee;
+  --accent: #7c3aed;
+  --accent-soft: #efe9fd;
+  --gain: #059669;
+  --gain-soft: #def3ea;
+  --loss: #dc2626;
+  --loss-soft: #fbe6e6;
+  --warn: #a16207;
+  --warn-soft: #fbf0d9;
+  color-scheme: light;
+}
+:root {
+  --display: "Inter Tight", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --body: "Inter Tight", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 400 17px/1.65 var(--body); }
+a { color: var(--accent); text-underline-offset: 3px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+h1, h2, h3, h4 { font-family: var(--display); line-height: 1.15; text-wrap: balance; margin: 0; }
+p { margin: 0; }
+.num, .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.gain { color: var(--gain); }
+.loss { color: var(--loss); }
+
+.wrap {
+  max-width: 1180px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 72px;
+  display: grid; grid-template-columns: 228px minmax(0, 1fr); gap: 56px;
+}
+
+/* contents */
+.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; max-height: calc(100vh - 48px); overflow: auto; font-family: var(--display); }
+.toc summary { list-style: none; cursor: pointer; font: 700 12px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); padding: 6px 0 12px; }
+.toc summary::-webkit-details-marker { display: none; }
+.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; counter-reset: c; }
+.toc li a { display: grid; grid-template-columns: 28px 1fr; gap: 6px; padding: 6px 8px; border-radius: 6px; color: var(--ink-2); text-decoration: none; font-size: 14px; line-height: 1.3; }
+.toc li a span { font: 500 11px/1.6 var(--mono); color: var(--ink-3); }
+.toc li a:hover { background: var(--sunk); color: var(--ink); }
+.toc li a.on { background: var(--accent-soft); color: var(--ink); }
+.toc li a.on span { color: var(--accent); }
+
+main { min-width: 0; max-width: 780px; display: grid; gap: 72px; }
+
+/* opener */
+.opener { display: grid; gap: 22px; }
+.eyebrow { font: 600 12px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--accent); }
+.opener h1 { font-size: clamp(44px, 7vw, 76px); font-weight: 800; letter-spacing: -.03em; }
+.opener h1 em { font-style: normal; color: var(--accent); }
+.lede { font-size: 20px; line-height: 1.55; color: var(--ink-2); max-width: 62ch; }
+.shapes { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.shape { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 14px 8px; display: grid; gap: 6px; min-width: 0; }
+.shape b { font: 700 15px var(--display); }
+.shape small { color: var(--ink-2); font-size: 14px; line-height: 1.45; }
+.facts { display: flex; flex-wrap: wrap; gap: 8px; }
+.facts span { padding: 6px 10px; border: 1px solid var(--rule); border-radius: 999px; font: 500 12.5px var(--mono); color: var(--ink-2); background: var(--surface); }
+
+/* chapters */
+section.ch { display: grid; gap: 22px; scroll-margin-top: 24px; }
+.ch-head { display: grid; gap: 8px; padding-top: 22px; border-top: 2px solid var(--ink); }
+.ch-num { font: 600 13px var(--mono); color: var(--accent); letter-spacing: .08em; }
+.ch-head h2 { font-size: clamp(30px, 4.4vw, 40px); font-weight: 800; letter-spacing: -.02em; }
+.ch-head p { color: var(--ink-2); font-size: 18px; }
+section.ch > p, .prose p { max-width: 66ch; }
+h3 { font-size: 22px; font-weight: 700; margin-top: 10px; }
+h4 { font-size: 16px; font-weight: 700; }
+ul.plain, ol.plain { margin: 0; padding-left: 22px; display: grid; gap: 8px; max-width: 66ch; }
+dfn { font-style: normal; font-weight: 600; border-bottom: 1px dotted var(--ink-3); }
+
+/* callouts: labelled boxes, no side rail */
+.note { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 16px 18px; display: grid; gap: 8px; }
+.note .tag { font: 700 11px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; }
+.note.plain-en { background: var(--accent-soft); border-color: transparent; }
+.note.plain-en .tag { color: var(--accent); }
+.note.watch { background: var(--loss-soft); border-color: transparent; }
+.note.watch .tag { color: var(--loss); }
+.note.example .tag { color: var(--ink-3); }
+.note.rules .tag { color: var(--warn); }
+.note.rules { background: var(--warn-soft); border-color: transparent; }
+
+figure { margin: 0; display: grid; gap: 10px; min-width: 0; }
+figcaption { font-size: 14px; color: var(--ink-2); line-height: 1.5; }
+.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; padding: 16px; min-width: 0; }
+.scroll-x { overflow-x: auto; }
+
+/* plumbing */
+.flow { display: flex; flex-wrap: wrap; align-items: stretch; gap: 10px; }
+.node { flex: 1 1 140px; display: grid; gap: 4px; padding: 12px 14px; border: 1px solid var(--rule); border-radius: 10px; background: var(--paper); min-width: 0; }
+.node b { font: 700 15px var(--display); }
+.node span { font-size: 13.5px; color: var(--ink-2); line-height: 1.4; }
+.node.hl { border-color: var(--accent); }
+.arrow { align-self: center; font: 600 18px var(--mono); color: var(--ink-3); }
+.over { margin-top: 10px; padding: 10px 14px; border: 1px dashed var(--ink-3); border-radius: 10px; font-size: 14px; color: var(--ink-2); }
+
+/* tables */
+table { width: 100%; border-collapse: collapse; font-size: 15px; }
+th { text-align: left; font: 600 11.5px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); padding: 10px 10px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+td { padding: 10px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+td.num, th.num { text-align: right; }
+tr:last-child td { border-bottom: 0; }
+
+/* MTM bars */
+.mtm { display: grid; gap: 10px; }
+.mtm-row { display: grid; grid-template-columns: 70px 90px minmax(0, 1fr) 96px; align-items: center; gap: 12px; font-size: 14.5px; }
+.mtm-row .bar { position: relative; height: 22px; }
+.mtm-row .bar::before { content: ""; position: absolute; left: 50%; top: -4px; bottom: -4px; width: 1px; background: var(--ink-3); }
+.mtm-row .bar i { position: absolute; top: 0; bottom: 0; border-radius: 4px; }
+.mtm-row .bar i.up { left: 50%; background: var(--gain); }
+.mtm-row .bar i.dn { right: 50%; background: var(--loss); }
+.mtm-row .amt { text-align: right; font-family: var(--mono); }
+
+/* 2x2 matrix */
+.matrix { display: grid; grid-template-columns: auto 1fr 1fr; gap: 8px; align-items: stretch; }
+.matrix .axis { font: 600 11.5px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); display: flex; align-items: center; justify-content: center; text-align: center; padding: 4px; }
+.cell { border-radius: 10px; padding: 12px 14px; display: grid; gap: 4px; }
+.cell b { font: 700 16px var(--display); }
+.cell span { font-size: 14px; line-height: 1.45; }
+.cell.g { background: var(--gain-soft); }
+.cell.g b { color: var(--gain); }
+.cell.r { background: var(--loss-soft); }
+.cell.r b { color: var(--loss); }
+
+/* moneyness strip */
+.strip { display: grid; gap: 6px; }
+.strip-row { display: grid; grid-template-columns: 54px repeat(7, minmax(0, 1fr)); gap: 4px; align-items: center; font: 500 12.5px var(--mono); }
+.strip-row > b { font: 700 13px var(--display); }
+.strip-row span { text-align: center; padding: 8px 2px; border-radius: 6px; }
+.k { background: var(--sunk); color: var(--ink-2); }
+.itm { background: var(--gain-soft); color: var(--gain); font-weight: 600; }
+.atm { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.otm { background: var(--sunk); color: var(--ink-3); }
+
+/* stacked premium bars */
+.stack { display: grid; gap: 10px; }
+.stack-row { display: grid; grid-template-columns: 120px minmax(0, 1fr) 70px; gap: 12px; align-items: center; font-size: 14.5px; }
+.stack-row .bars { display: flex; height: 26px; border-radius: 6px; overflow: hidden; background: var(--sunk); }
+.stack-row .bars i { display: block; height: 100%; }
+.stack-row .iv { background: var(--gain); }
+.stack-row .tv { background: var(--accent); opacity: .75; }
+.legend { display: flex; flex-wrap: wrap; gap: 16px; font: 500 12.5px var(--mono); color: var(--ink-2); }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 6px; }
+.legend i.dash { height: 0; border-top: 2px dashed var(--ink-2); border-radius: 0; vertical-align: 3px; width: 18px; }
+.legend i.solid { height: 0; border-top: 3px solid var(--accent); border-radius: 0; vertical-align: 3px; width: 18px; }
+
+/* small multiples */
+.four { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.mini { display: grid; gap: 6px; padding: 14px 14px 8px; background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; min-width: 0; }
+.mini b { font: 700 16px var(--display); }
+.mini .view { font-size: 13.5px; color: var(--ink-2); line-height: 1.4; }
+.mini dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 0; font-size: 13.5px; }
+.mini dt { color: var(--ink-3); }
+.mini dd { margin: 0; font-family: var(--mono); font-size: 13px; }
+
+/* svg charts */
+svg.chart { display: block; width: 100%; overflow: visible; }
+svg.chart .grid { stroke: var(--rule); stroke-width: 1; }
+svg.chart .zero { stroke: var(--ink-2); stroke-width: 1.2; }
+svg.chart .tick { fill: var(--ink-3); font: 500 11px var(--mono); }
+svg.chart .ln { fill: none; stroke: var(--accent); stroke-width: 2.4; stroke-linejoin: round; }
+svg.chart .ln.now { stroke: var(--ink-2); stroke-width: 1.6; stroke-dasharray: 5 4; }
+svg.chart .ln.alt { stroke: var(--warn); }
+svg.chart .ln.short { stroke: var(--loss); }
+svg.chart .fill-gain { fill: var(--gain); fill-opacity: .14; }
+svg.chart .fill-loss { fill: var(--loss); fill-opacity: .14; }
+svg.chart .vmark { stroke: var(--ink-3); stroke-width: 1; stroke-dasharray: 3 4; }
+svg.chart .vlab { fill: var(--ink-2); font: 500 11px var(--mono); }
+svg.chart .dot { fill: var(--surface); stroke: var(--ink); stroke-width: 2; }
+svg.chart .dlab { fill: var(--ink); font: 600 11px var(--mono); }
+svg.chart .zone { fill: var(--accent); fill-opacity: .08; }
+
+/* option chain */
+.chain td, .chain th { text-align: right; font-family: var(--mono); font-size: 13.5px; padding: 8px 8px; }
+.chain th { font-size: 10.5px; }
+.chain .strike { text-align: center; font-weight: 600; background: var(--sunk); color: var(--ink); }
+.chain .itm-c td.c, .chain .itm-p td.p { background: var(--gain-soft); }
+.chain .hl { color: var(--accent); font-weight: 600; }
+.chain .side { text-align: center; color: var(--ink-2); font: 700 11px var(--mono); letter-spacing: .12em; }
+
+/* greeks */
+.greeks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.greek { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 16px; display: grid; gap: 6px; align-content: start; }
+.greek h4 { display: flex; align-items: baseline; gap: 8px; font-size: 18px; }
+.greek h4 span { font: 600 20px var(--body); color: var(--accent); }
+.greek p { font-size: 15px; line-height: 1.5; }
+.greek .use { color: var(--ink-2); font-size: 14px; }
+
+/* lab */
+.lab { display: grid; gap: 16px; }
+.lab-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
+.ctrl { display: grid; gap: 12px; }
+.ctrl label { display: grid; gap: 4px; font: 600 12px var(--mono); letter-spacing: .04em; color: var(--ink-2); }
+.ctrl label span.v { color: var(--ink); font-weight: 600; }
+.ctrl .row { display: flex; justify-content: space-between; gap: 8px; }
+select, input[type="number"] { width: 100%; padding: 9px 10px; border: 1px solid var(--rule); border-radius: 8px; background: var(--paper); color: var(--ink); font: 500 14px var(--mono); }
+input[type="range"] { width: 100%; accent-color: var(--accent); }
+.out { display: grid; gap: 8px; align-content: start; }
+.out table td { padding: 7px 8px; font-size: 14px; }
+.kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.kpi { background: var(--paper); border: 1px solid var(--rule); border-radius: 10px; padding: 10px 12px; display: grid; gap: 2px; }
+.kpi span { font: 600 10.5px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+.kpi b { font: 600 16px var(--mono); }
+.lab-note { font-size: 13.5px; color: var(--ink-2); }
+
+/* sizing */
+.calc { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.result { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+.verdict { margin-top: 10px; padding: 10px 14px; border-radius: 10px; font-size: 15px; }
+.verdict.ok { background: var(--gain-soft); }
+.verdict.no { background: var(--loss-soft); }
+
+/* timeline */
+.day { display: grid; gap: 0; border-left: 2px solid var(--rule); margin-left: 6px; }
+.slot { position: relative; display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 14px; padding: 0 0 18px 18px; }
+.slot::before { content: ""; position: absolute; left: -7px; top: 6px; width: 12px; height: 12px; border-radius: 50%; background: var(--paper); border: 2px solid var(--accent); }
+.slot time { font: 600 13.5px var(--mono); color: var(--accent); padding-top: 2px; }
+.slot p { font-size: 15.5px; }
+.slot b { font-family: var(--display); }
+
+/* checklist */
+.checks { display: grid; gap: 6px; }
+.checks label { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start; padding: 10px 12px; background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; cursor: pointer; font-size: 15.5px; line-height: 1.45; }
+.checks input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--gain); }
+.checks label:has(input:checked) { border-color: var(--gain); background: var(--gain-soft); }
+.progress { font: 600 13px var(--mono); color: var(--ink-2); }
+
+/* terms of the terminal */
+.terms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.term { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 16px; display: grid; gap: 4px; }
+.term b { font: 700 16px var(--display); }
+.term p { font-size: 15px; line-height: 1.5; }
+
+/* glossary */
+.gtools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.gtools input { flex: 1 1 240px; padding: 11px 14px; border: 1px solid var(--rule); border-radius: 10px; background: var(--surface); color: var(--ink); font: 400 16px var(--body); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips button { padding: 6px 11px; border: 1px solid var(--rule); border-radius: 999px; background: var(--surface); color: var(--ink-2); font: 500 12.5px var(--mono); cursor: pointer; }
+.chips button.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.gcount { font: 500 12.5px var(--mono); color: var(--ink-3); }
+dl.gloss { margin: 0; display: grid; gap: 0; }
+.gi { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--rule); }
+.gi dt { font: 700 16px var(--display); display: grid; gap: 3px; align-content: start; }
+.gi dt small { font: 500 10.5px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+.gi dd { margin: 0; font-size: 15.5px; line-height: 1.55; }
+.empty { color: var(--ink-3); padding: 16px 0; }
+
+footer.end { display: grid; gap: 8px; padding-top: 22px; border-top: 1px solid var(--rule); color: var(--ink-2); font-size: 14px; }
+
+@media (max-width: 960px) {
+  .wrap { grid-template-columns: minmax(0, 1fr); gap: 28px; padding-block: 20px 56px; }
+  .toc { position: static; max-height: none; border: 1px solid var(--rule); border-radius: 12px; padding: 4px 12px 10px; background: var(--surface); }
+  .toc summary { padding: 12px 0; }
+  main { gap: 56px; }
+}
+@media (max-width: 640px) {
+  body { font-size: 16.5px; }
+  .shapes, .four, .greeks, .lab-grid, .terms { grid-template-columns: minmax(0, 1fr); }
+  .calc { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .result { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .gi { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .mtm-row { grid-template-columns: 52px 72px minmax(0, 1fr) 80px; gap: 8px; font-size: 13px; }
+  .stack-row { grid-template-columns: 92px minmax(0, 1fr) 56px; }
+  .strip-row { grid-template-columns: 44px repeat(7, minmax(0, 1fr)); font-size: 11px; }
+  .slot { grid-template-columns: 76px minmax(0, 1fr); }
+  .matrix { grid-template-columns: 54px 1fr 1fr; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .toc li a { transition: background .15s, color .15s; }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <nav class="toc" aria-label="Contents">
+    <details id="toc" open>
+      <summary>Contents</summary>
+      <ol>
+        <li><a href="#market"><span>01</span>The market you trade in</a></li>
+        <li><a href="#derivatives"><span>02</span>What a derivative is</a></li>
+        <li><a href="#futures"><span>03</span>Futures</a></li>
+        <li><a href="#options"><span>04</span>Options</a></li>
+        <li><a href="#chain"><span>05</span>Reading an option chain</a></li>
+        <li><a href="#greeks"><span>06</span>The Greeks</a></li>
+        <li><a href="#lab"><span>07</span>Option lab</a></li>
+        <li><a href="#strategies"><span>08</span>Strategies to start with</a></li>
+        <li><a href="#money"><span>09</span>Margin, costs and tax</a></li>
+        <li><a href="#risk"><span>10</span>Managing risk</a></li>
+        <li><a href="#day"><span>11</span>Orders and the trading day</a></li>
+        <li><a href="#price"><span>12</span>Reading price like a pro</a></li>
+        <li><a href="#ready"><span>13</span>Ready-to-trade checklist</a></li>
+        <li><a href="#glossary"><span>14</span>Glossary</a></li>
+      </ol>
+    </details>
+  </nav>
+
+  <main>
+    <header class="opener">
+      <p class="eyebrow">NSE · Futures &amp; Options · Zero to ready</p>
+      <h1>F&amp;O <em>Field Guide</em></h1>
+      <p class="lede">Futures and options explained from the very first idea to a planned, sized and written-down trade. Every term is explained the first time it appears, and again in the glossary at the end.</p>
+      <div class="shapes">
+        <div class="shape">
+          <b>A future is a straight line</b>
+          <svg class="chart" id="hero-fut" role="img" aria-label="Profit and loss of a bought future rises one-for-one with price"></svg>
+          <small>You gain or lose one rupee for every rupee the price moves, multiplied by the lot size.</small>
+        </div>
+        <div class="shape">
+          <b>A bought option is a hockey stick</b>
+          <svg class="chart" id="hero-opt" role="img" aria-label="Profit and loss of a bought call: fixed loss below the strike, rising gain above it"></svg>
+          <small>You pay a fixed amount up front. It pays off only if price moves past the strike by more than you paid.</small>
+        </div>
+      </div>
+      <div class="facts">
+        <span>Market hours 9:15 AM – 3:30 PM IST</span>
+        <span>Indices + ~200 stocks in F&amp;O</span>
+        <span>Profit &amp; loss settled daily</span>
+        <span>Regulator: SEBI</span>
+      </div>
+      <div class="note watch">
+        <span class="tag">Read this first</span>
+        <p>SEBI studied more than one crore individual F&amp;O traders. Between FY22 and FY24, 93% of them lost money, around ₹2 lakh each on average once costs were included (SEBI study, September 2024). This guide explains how F&amp;O works and how to control risk. It cannot remove the risk, and nothing in it is a recommendation to buy or sell.</p>
+      </div>
+    </header>
+
+    <!-- 01 -->
+    <section class="ch" id="market">
+      <div class="ch-head">
+        <span class="ch-num">01</span>
+        <h2>The market you trade in</h2>
+        <p>Who is involved when you press Buy, and what each of them does.</p>
+      </div>
+      <figure>
+        <div class="panel">
+          <div class="flow">
+            <div class="node"><b>You</b><span>Place orders through an app. Money sits in your trading account, shares in your demat account.</span></div>
+            <div class="arrow" aria-hidden="true">→</div>
+            <div class="node"><b>Broker</b><span>Zerodha, Upstox, Dhan, Groww and others. Sends your order to the exchange and collects margin.</span></div>
+            <div class="arrow" aria-hidden="true">→</div>
+            <div class="node hl"><b>Exchange</b><span>NSE or BSE. Matches your order with someone else's at the best price.</span></div>
+            <div class="arrow" aria-hidden="true">→</div>
+            <div class="node"><b>Clearing corporation</b><span>NSE Clearing. Guarantees every trade, holds margin, moves money each day.</span></div>
+          </div>
+          <div class="over"><b>SEBI</b> sits over all of them. It writes the rules for brokers, exchanges and traders, and changes them often.</div>
+        </div>
+        <figcaption>The path of one order. The exchange never takes the other side of your trade; another trader does. The clearing corporation stands in the middle so neither of you has to trust the other.</figcaption>
+      </figure>
+      <h3>Segments</h3>
+      <p>A broker account is split into <dfn>segments</dfn>, and each one is switched on separately.</p>
+      <ul class="plain">
+        <li><b>Cash or equity:</b> you buy actual shares. They arrive in your demat account one working day later (called <dfn>T+1</dfn> settlement).</li>
+        <li><b>F&amp;O (futures and options):</b> you trade contracts based on an index or a stock. You usually never own the shares. Activating this segment needs income proof, such as a bank statement or tax return.</li>
+        <li><b>Currency and commodity:</b> the same contract ideas applied to the rupee, gold, crude oil and so on (commodities trade mainly on MCX).</li>
+      </ul>
+      <h3>When it trades</h3>
+      <p>The normal session runs from <span class="num">9:15 AM</span> to <span class="num">3:30 PM</span> IST, Monday to Friday, except exchange holidays. Prices move fastest in the first fifteen minutes and in the last hour.</p>
+      <div class="note plain-en">
+        <span class="tag">In plain English</span>
+        <p>In the cash market you pay for shares and wait a day to receive them. In F&amp;O nothing is delivered day to day. Instead, every evening your account is credited with the day's profit or debited with the day's loss. That daily settling-up is called <dfn>mark-to-market</dfn>.</p>
+      </div>
+    </section>
+
+    <!-- 02 -->
+    <section class="ch" id="derivatives">
+      <div class="ch-head">
+        <span class="ch-num">02</span>
+        <h2>What a derivative is</h2>
+        <p>A contract whose price comes from something else.</p>
+      </div>
+      <p>A <dfn>derivative</dfn> is an agreement between two people whose value depends on the price of something else, called the <dfn>underlying</dfn>. If the underlying moves, the contract's value moves with it. In Indian F&amp;O the underlying is either a stock index or a single stock.</p>
+      <ul class="plain">
+        <li><b>Indices:</b> NIFTY 50, NIFTY BANK, FINNIFTY, MIDCPNIFTY and NIFTY NEXT 50 on NSE; SENSEX and BANKEX on BSE.</li>
+        <li><b>Stocks:</b> about 200 large, heavily traded companies. The list is revised a few times a year.</li>
+      </ul>
+      <h3>Why derivatives exist</h3>
+      <ul class="plain">
+        <li><b>Hedgers</b> want protection. A fund holding ₹100 crore of shares can buy put options so a market fall hurts less.</li>
+        <li><b>Speculators</b> want to profit from a view on direction while putting up less money than buying the shares outright.</li>
+        <li><b>Arbitrageurs</b> profit from small price gaps, for example when a stock's future is priced too far above the share.</li>
+      </ul>
+      <p>Every trade needs two sides. When you speculate, the person on the other side is often a hedger or a professional who does this all day.</p>
+      <h3>What every contract specifies</h3>
+      <div class="panel scroll-x">
+        <table>
+          <thead><tr><th>Item</th><th>What it means</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td><b>Underlying</b></td><td>What the contract tracks</td><td>NIFTY 50, or ABC Ltd shares</td></tr>
+            <tr><td><b>Lot size</b></td><td>The fixed quantity in one contract. You trade in whole lots only.</td><td class="mono">500 shares (example)</td></tr>
+            <tr><td><b>Contract value</b></td><td>Price × lot size. Also called notional value.</td><td class="mono">₹2,000 × 500 = ₹10,00,000</td></tr>
+            <tr><td><b>Expiry</b></td><td>The last day the contract exists</td><td>Last Tuesday of the month on NSE</td></tr>
+            <tr><td><b>Tick size</b></td><td>Smallest price step</td><td class="mono">₹0.05 for most contracts</td></tr>
+            <tr><td><b>Settlement</b></td><td>What happens at expiry</td><td>Index: cash. Stock: shares delivered</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note rules">
+        <span class="tag">Rules that change</span>
+        <p>Since September 2025, NSE contracts expire on Tuesdays (monthly contracts on the last Tuesday of the month) and BSE contracts on Thursdays. Weekly expiries exist for only one index per exchange: NIFTY on NSE and SENSEX on BSE. When expiry falls on a holiday it moves to the previous trading day. Lot sizes are revised periodically so that each index contract is worth at least ₹15 lakh. Always check the exchange's current circulars before trading.</p>
+      </div>
+      <p>At any time three monthly contracts trade: the <dfn>near month</dfn> (expiring soonest, the busiest), the <dfn>next month</dfn> and the <dfn>far month</dfn>.</p>
+    </section>
+
+    <!-- 03 -->
+    <section class="ch" id="futures">
+      <div class="ch-head">
+        <span class="ch-num">03</span>
+        <h2>Futures</h2>
+        <p>An agreement to buy or sell later at a price fixed today.</p>
+      </div>
+      <p>A <dfn>futures contract</dfn> fixes a price today for a trade that settles on expiry. Both sides are bound to it. The buyer is <dfn>long</dfn> and gains if the price rises. The seller is <dfn>short</dfn> and gains if it falls. You can sell a future without owning the shares, which is how traders bet on a fall.</p>
+      <div class="note example">
+        <span class="tag">Worked example</span>
+        <p>ABC Ltd trades at <span class="num">₹2,000</span> and its lot size is <span class="num">500</span> (an example figure). One futures contract controls <span class="num">₹2,000 × 500 = ₹10,00,000</span> of shares. You don't pay ₹10 lakh. You deposit <dfn>margin</dfn>, roughly 15–25% of the contract value, say <span class="num">₹2,00,000</span>.</p>
+        <p>If ABC rises 1% to ₹2,020, you gain <span class="num">₹20 × 500 = ₹10,000</span>, which is 5% of your margin. If it falls 1%, you lose the same ₹10,000. That magnification is called <dfn>leverage</dfn>, and it works in both directions.</p>
+      </div>
+      <figure>
+        <div class="panel">
+          <svg class="chart" id="fut-payoff" role="img" aria-label="Long and short futures profit and loss against ABC price"></svg>
+          <div class="legend"><span><i class="solid"></i>Long (bought) future</span><span><i style="background:var(--loss)"></i>Short (sold) future</span></div>
+        </div>
+        <figcaption>Profit or loss on one lot of ABC futures bought or sold at ₹2,000, for each closing price. Straight lines: no cap on gains or losses either way.</figcaption>
+      </figure>
+
+      <h3>Margin, and what happens every evening</h3>
+      <p>The exchange works out how much one contract could lose on a bad day and asks for that up front. This <dfn>initial margin</dfn> has two parts: <dfn>SPAN margin</dfn> (the exchange's worst-case estimate) and <dfn>exposure margin</dfn> (an extra buffer). Your broker blocks it in your account when you open the trade.</p>
+      <p>Then, every evening, the contract is marked to the day's closing price and the difference is settled in cash.</p>
+      <figure>
+        <div class="panel mtm" aria-label="Three days of mark-to-market settlement">
+          <div class="mtm-row"><b>Day 1</b><span class="mono">₹2,030</span><div class="bar"><i class="up" style="width:30%"></i></div><span class="amt gain">+₹15,000</span></div>
+          <div class="mtm-row"><b>Day 2</b><span class="mono">₹1,990</span><div class="bar"><i class="dn" style="width:40%"></i></div><span class="amt loss">−₹20,000</span></div>
+          <div class="mtm-row"><b>Day 3</b><span class="mono">sold ₹2,010</span><div class="bar"><i class="up" style="width:20%"></i></div><span class="amt gain">+₹10,000</span></div>
+          <div class="mtm-row" style="border-top:1px solid var(--rule);padding-top:10px"><b>Net</b><span class="mono">₹2,000 → ₹2,010</span><span></span><span class="amt gain"><b>+₹5,000</b></span></div>
+        </div>
+        <figcaption>One lot of ABC bought at ₹2,000. Each day's change in the closing price × 500 is credited or debited that evening. The total equals (exit − entry) × lot size.</figcaption>
+      </figure>
+      <div class="note watch">
+        <span class="tag">Watch out</span>
+        <p>If losses eat into your margin, the broker asks you to add money. That is a <dfn>margin call</dfn>. If you don't, the broker can close your position at whatever the market price is, usually at the worst moment.</p>
+      </div>
+
+      <h3>Futures price versus share price</h3>
+      <p>A future usually trades a little above the share price. The gap is the <dfn>basis</dfn>. Above the share price is a <dfn>premium</dfn>, below it a <dfn>discount</dfn>. The premium mostly reflects interest for the days left, called the <dfn>cost of carry</dfn>. As expiry approaches the gap shrinks to zero, and on expiry day the future settles at the share's closing price.</p>
+      <h3>Rollover, expiry and settlement</h3>
+      <ul class="plain">
+        <li><b>Rollover:</b> to hold a view beyond expiry, you close this month's contract and open next month's. The price difference between the two is your cost.</li>
+        <li><b>Index futures</b> are settled in cash at the final settlement price.</li>
+        <li><b>Stock futures</b> are settled by <dfn>physical delivery</dfn>. If you're still long at expiry you must pay the full contract value and take the shares; if you're short you must deliver shares. Most traders exit before expiry day.</li>
+      </ul>
+
+      <h3>Open interest, and what it tells you</h3>
+      <p><dfn>Volume</dfn> counts contracts traded today. <dfn>Open interest (OI)</dfn> counts contracts still open, opened and not yet closed. Rising OI means fresh money is entering; falling OI means positions are being closed. Read together with price, it shows who is in control.</p>
+      <figure>
+        <div class="matrix" role="table" aria-label="Price and open interest combinations">
+          <span></span><span class="axis">OI rising</span><span class="axis">OI falling</span>
+          <span class="axis">Price up</span>
+          <div class="cell g"><b>Long build-up</b><span>New buyers entering. Strong up-move.</span></div>
+          <div class="cell g"><b>Short covering</b><span>Sellers buying back to exit. Up-move that may fade.</span></div>
+          <span class="axis">Price down</span>
+          <div class="cell r"><b>Short build-up</b><span>New sellers entering. Strong down-move.</span></div>
+          <div class="cell r"><b>Long unwinding</b><span>Buyers selling to exit. Down-move that may slow.</span></div>
+        </div>
+        <figcaption>The four combinations of price and open interest. These are the tags shown on cards in the OB Terminal.</figcaption>
+      </figure>
+    </section>
+
+    <!-- 04 -->
+    <section class="ch" id="options">
+      <div class="ch-head">
+        <span class="ch-num">04</span>
+        <h2>Options</h2>
+        <p>The right, but not the obligation, to buy or sell at a fixed price.</p>
+      </div>
+      <p>Think of an option like insurance. You pay a small amount, the <dfn>premium</dfn>, for a right that you may or may not use. The person who sells you that right, the <dfn>option writer</dfn>, keeps the premium and takes on the obligation.</p>
+      <ul class="plain">
+        <li>A <dfn>call option</dfn> gives the right to <b>buy</b> the underlying at a fixed price. You buy calls when you expect a rise.</li>
+        <li>A <dfn>put option</dfn> gives the right to <b>sell</b> at a fixed price. You buy puts when you expect a fall, or to protect shares you own.</li>
+        <li>The fixed price is the <dfn>strike price</dfn>. Every option has a strike, an expiry and a lot size.</li>
+      </ul>
+      <div class="panel scroll-x">
+        <table>
+          <thead><tr><th></th><th>Buyer (holder)</th><th>Seller (writer)</th></tr></thead>
+          <tbody>
+            <tr><td><b>Pays / receives</b></td><td>Pays the premium</td><td>Receives the premium</td></tr>
+            <tr><td><b>Rights</b></td><td>A right, used only if worth it</td><td>An obligation if the buyer gains</td></tr>
+            <tr><td><b>Most they can lose</b></td><td class="gain">The premium paid</td><td class="loss">Unlimited for a call, large for a put</td></tr>
+            <tr><td><b>Most they can make</b></td><td>Unlimited for a call, large for a put</td><td>The premium received</td></tr>
+            <tr><td><b>Margin</b></td><td>None beyond the premium</td><td>Large margin blocked</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>In, at or out of the money</h3>
+      <p><dfn>Moneyness</dfn> says whether exercising an option right now would pay. With NIFTY at 25,000:</p>
+      <figure>
+        <div class="panel strip" aria-label="Moneyness of calls and puts at strikes around 25,000">
+          <div class="strip-row"><b></b><span class="k">24,700</span><span class="k">24,800</span><span class="k">24,900</span><span class="k" style="font-weight:700;color:var(--ink)">25,000</span><span class="k">25,100</span><span class="k">25,200</span><span class="k">25,300</span></div>
+          <div class="strip-row"><b>Calls</b><span class="itm">ITM</span><span class="itm">ITM</span><span class="itm">ITM</span><span class="atm">ATM</span><span class="otm">OTM</span><span class="otm">OTM</span><span class="otm">OTM</span></div>
+          <div class="strip-row"><b>Puts</b><span class="otm">OTM</span><span class="otm">OTM</span><span class="otm">OTM</span><span class="atm">ATM</span><span class="itm">ITM</span><span class="itm">ITM</span><span class="itm">ITM</span></div>
+        </div>
+        <figcaption><b>In the money (ITM)</b>: exercising pays now. <b>At the money (ATM)</b>: strike nearest the current price. <b>Out of the money (OTM)</b>: exercising would pay nothing now. A 24,800 call is ITM because the right to buy at 24,800 is worth 200 when NIFTY is at 25,000.</figcaption>
+      </figure>
+
+      <h3>What a premium is made of</h3>
+      <p>Every premium has two parts. <dfn>Intrinsic value</dfn> is what the option would pay if exercised right now. <dfn>Time value</dfn> (also called extrinsic value) is everything else: what buyers pay for the chance that price moves further before expiry.</p>
+      <figure>
+        <div class="panel stack">
+          <div class="stack-row"><b>24,800 call</b><div class="bars" aria-label="Premium 300: intrinsic 200, time 100"><i class="iv" style="width:66.7%"></i><i class="tv" style="width:33.3%"></i></div><span class="mono">₹300</span></div>
+          <div class="stack-row"><b>25,000 call</b><div class="bars" aria-label="Premium 180: all time value"><i class="tv" style="width:60%"></i></div><span class="mono">₹180</span></div>
+          <div class="stack-row"><b>25,200 call</b><div class="bars" aria-label="Premium 85: all time value"><i class="tv" style="width:28.3%"></i></div><span class="mono">₹85</span></div>
+          <div class="legend"><span><i style="background:var(--gain)"></i>Intrinsic value</span><span><i style="background:var(--accent);opacity:.75"></i>Time value</span></div>
+        </div>
+        <figcaption>Illustrative premiums with NIFTY at 25,000 and a week to expiry. Only ITM options have intrinsic value. ATM options carry the most time value, and it all disappears by expiry.</figcaption>
+      </figure>
+
+      <h3>The four basic positions</h3>
+      <p>Every option strategy is built from these four. Each chart shows profit or loss for one lot at expiry, for a 25,000 strike bought or sold for ₹180 with an example lot of 75.</p>
+      <div class="four">
+        <div class="mini"><b>Buy a call</b><span class="view">You expect a strong rise.</span><svg class="chart" id="m-bc" role="img" aria-label="Buy call payoff"></svg>
+          <dl><dt>Most you lose</dt><dd>Premium: ₹13,500</dd><dt>Most you make</dt><dd>Unlimited</dd><dt>Breakeven</dt><dd>Strike + premium = 25,180</dd></dl></div>
+        <div class="mini"><b>Buy a put</b><span class="view">You expect a strong fall.</span><svg class="chart" id="m-bp" role="img" aria-label="Buy put payoff"></svg>
+          <dl><dt>Most you lose</dt><dd>Premium: ₹13,500</dd><dt>Most you make</dt><dd>Large (price can't go below 0)</dd><dt>Breakeven</dt><dd>Strike − premium = 24,820</dd></dl></div>
+        <div class="mini"><b>Sell a call</b><span class="view">You expect no big rise.</span><svg class="chart" id="m-sc" role="img" aria-label="Sell call payoff"></svg>
+          <dl><dt>Most you make</dt><dd>Premium: ₹13,500</dd><dt>Most you lose</dt><dd class="loss">Unlimited</dd><dt>Breakeven</dt><dd>25,180</dd></dl></div>
+        <div class="mini"><b>Sell a put</b><span class="view">You expect no big fall.</span><svg class="chart" id="m-sp" role="img" aria-label="Sell put payoff"></svg>
+          <dl><dt>Most you make</dt><dd>Premium: ₹13,500</dd><dt>Most you lose</dt><dd class="loss">Very large</dd><dt>Breakeven</dt><dd>24,820</dd></dl></div>
+      </div>
+
+      <h3>Exercise and settlement in India</h3>
+      <ul class="plain">
+        <li>Indian options are <dfn>European style</dfn>: they can only be exercised on expiry day. Before that, you exit by selling the option in the market, which is what almost everyone does.</li>
+        <li>At expiry, ITM options are exercised automatically. <b>Index options</b> settle in cash.</li>
+        <li><b>Stock options</b> settle by physical delivery. An ITM stock call held to expiry means you must buy the shares at the strike, paying the full value. Brokers raise margins sharply in expiry week and may close such positions themselves. Exit ITM stock options before expiry day.</li>
+        <li>An option exercised at expiry attracts a higher securities transaction tax on its intrinsic value than one sold in the market. Selling before expiry is usually cheaper.</li>
+      </ul>
+
+      <h3>Why most option buyers lose</h3>
+      <p>Time value shrinks every day and falls fastest in the final week. A buyer needs the move to come quickly and be big enough to beat this decay. A seller collects it, but carries the risk of a large move.</p>
+      <figure>
+        <div class="panel">
+          <svg class="chart" id="theta-curve" role="img" aria-label="Value of an at-the-money and an out-of-the-money option as expiry approaches"></svg>
+          <div class="legend"><span><i class="solid"></i>ATM 25,000 call</span><span><i style="background:var(--warn)"></i>OTM 25,300 call</span></div>
+        </div>
+        <figcaption>Premium of a NIFTY call with price unchanged at 25,000, as days to expiry run down from 45 to 0 (model values, volatility 13%). Most of the loss happens in the last two weeks.</figcaption>
+      </figure>
+    </section>
+
+    <!-- 05 -->
+    <section class="ch" id="chain">
+      <div class="ch-head">
+        <span class="ch-num">05</span>
+        <h2>Reading an option chain</h2>
+        <p>The screen where every strike for one expiry is listed side by side.</p>
+      </div>
+      <p>An <dfn>option chain</dfn> lists all strikes for one underlying and one expiry. Calls are on the left, puts on the right, strikes in the middle. ITM rows are usually shaded.</p>
+      <figure>
+        <div class="panel scroll-x">
+          <table class="chain">
+            <thead>
+              <tr><th colspan="4" class="side">Calls</th><th></th><th colspan="4" class="side">Puts</th></tr>
+              <tr><th>OI (lakh)</th><th>Chg OI</th><th>IV %</th><th>LTP</th><th class="strike">Strike</th><th>LTP</th><th>IV %</th><th>Chg OI</th><th>OI (lakh)</th></tr>
+            </thead>
+            <tbody>
+              <tr class="itm-c"><td class="c">18.2</td><td class="c">−1.1</td><td class="c">13.4</td><td class="c">305</td><td class="strike">24,800</td><td>62</td><td>14.1</td><td>+4.0</td><td class="hl">52.6</td></tr>
+              <tr class="itm-c"><td class="c">24.9</td><td class="c">+0.6</td><td class="c">13.1</td><td class="c">232</td><td class="strike">24,900</td><td>88</td><td>13.7</td><td>+2.8</td><td>41.3</td></tr>
+              <tr><td>48.1</td><td>+6.2</td><td>12.9</td><td>178</td><td class="strike">25,000</td><td>131</td><td>13.3</td><td>+3.1</td><td>44.0</td></tr>
+              <tr class="itm-p"><td>39.5</td><td>+5.4</td><td>12.6</td><td>124</td><td class="strike">25,100</td><td class="p">178</td><td class="p">13.0</td><td class="p">−0.4</td><td class="p">20.7</td></tr>
+              <tr class="itm-p"><td class="hl">61.3</td><td>+9.8</td><td>12.4</td><td>85</td><td class="strike">25,200</td><td class="p">240</td><td class="p">12.8</td><td class="p">−0.9</td><td class="p">12.2</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <figcaption>Illustrative chain with NIFTY at 25,000. The biggest call OI is at 25,200 and the biggest put OI at 24,800.</figcaption>
+      </figure>
+      <ul class="plain">
+        <li><b>LTP</b> (last traded price) is the option's current premium.</li>
+        <li><b>OI</b> is how many contracts are open at that strike. <b>Chg OI</b> is how much that changed today.</li>
+        <li><b>IV</b> (implied volatility) is how big a move the market is pricing in. Higher IV means more expensive options.</li>
+        <li><b>Bid</b> and <b>ask</b> (not shown) are the best prices buyers and sellers are offering. The gap between them is the <dfn>bid-ask spread</dfn>.</li>
+      </ul>
+      <h3>What traders read from it</h3>
+      <ul class="plain">
+        <li>A strike with very high <b>call OI</b> means many sellers expect price to stay below it, so it often acts as resistance (25,200 above). High <b>put OI</b> often acts as support (24,800 above). These are tendencies, not walls.</li>
+        <li><dfn>PCR</dfn> (put-call ratio) is total put OI ÷ total call OI. Very high or very low readings show crowded positioning.</li>
+        <li><dfn>Max pain</dfn> is the strike at which option buyers as a group would lose the most at expiry. Some traders watch it on expiry day. Treat it as background, not a signal.</li>
+      </ul>
+      <div class="note watch">
+        <span class="tag">Watch out</span>
+        <p>Trade only strikes with a tight bid-ask spread and healthy OI. In a thin strike you can buy at ₹12 and find the best bid is ₹10 a second later. That gap is lost the moment you enter, and again when you exit. The difference between the price you expected and the price you got is <dfn>slippage</dfn>.</p>
+      </div>
+    </section>
+
+    <!-- 06 -->
+    <section class="ch" id="greeks">
+      <div class="ch-head">
+        <span class="ch-num">06</span>
+        <h2>The Greeks</h2>
+        <p>Four numbers that explain why an option's price moves.</p>
+      </div>
+      <p>An option's premium changes for three reasons: the underlying moves, time passes, and expectations of volatility change. The <dfn>Greeks</dfn> measure each effect. Your broker's option chain shows them for every strike.</p>
+      <div class="greeks">
+        <div class="greek"><h4><span>Δ</span>Delta</h4><p>How much the premium moves for a ₹1 move in the underlying. ATM options have a delta near 0.5, deep ITM near 1, far OTM near 0. Puts have negative delta.</p><p class="use">A 0.5-delta call gains about ₹50 if NIFTY rises 100. Delta is also a rough guide to the chance of expiring ITM.</p></div>
+        <div class="greek"><h4><span>Γ</span>Gamma</h4><p>How fast delta itself changes as price moves. Highest for ATM options close to expiry.</p><p class="use">This is why expiry-day options can jump from ₹5 to ₹50, or collapse to zero, in minutes.</p></div>
+        <div class="greek"><h4><span>Θ</span>Theta</h4><p>How much value the option loses per day from time passing, all else equal. Shown as a negative number for buyers.</p><p class="use">A theta of −12 means the premium drops about ₹12 a day. Sellers earn this; buyers pay it.</p></div>
+        <div class="greek"><h4><span>ν</span>Vega</h4><p>How much the premium changes for a 1-point change in implied volatility.</p><p class="use">Options get pricier when fear rises and cheaper when it fades, even if price doesn't move.</p></div>
+      </div>
+      <p><b>Rho</b> measures sensitivity to interest rates. For short-dated Indian options it barely matters.</p>
+      <figure>
+        <div class="panel">
+          <svg class="chart" id="delta-curve" role="img" aria-label="Call delta against NIFTY price for two times to expiry"></svg>
+          <div class="legend"><span><i class="solid"></i>30 days to expiry</span><span><i style="background:var(--warn)"></i>2 days to expiry</span></div>
+        </div>
+        <figcaption>Delta of a 25,000 call as NIFTY varies. Close to expiry the curve becomes a steep step around the strike: that steepness is gamma.</figcaption>
+      </figure>
+      <h3>Volatility: the hidden price driver</h3>
+      <ul class="plain">
+        <li><dfn>Historical volatility</dfn> measures how much the price actually moved recently. <dfn>Implied volatility (IV)</dfn> is the move that option prices are currently assuming.</li>
+        <li><dfn>India VIX</dfn> is a fear gauge built from NIFTY option prices. A VIX of 13 roughly means the market expects NIFTY to move about 13% over a year. When VIX jumps, all option premiums rise.</li>
+        <li><dfn>IV crush</dfn>: before results, budgets or RBI policy, IV rises because a big move is expected. Once the news is out, IV collapses. A buyer can be right about direction and still lose money as the premium deflates.</li>
+      </ul>
+    </section>
+
+    <!-- 07 -->
+    <section class="ch" id="lab">
+      <div class="ch-head">
+        <span class="ch-num">07</span>
+        <h2>Option lab</h2>
+        <p>Pick a position, move the sliders, and watch what you can make or lose.</p>
+      </div>
+      <div class="panel lab">
+        <div class="lab-grid">
+          <div class="ctrl">
+            <label for="lab-strat">Position
+              <select id="lab-strat">
+                <option value="bc">Buy a call</option>
+                <option value="bp">Buy a put</option>
+                <option value="sc">Sell a call</option>
+                <option value="sp">Sell a put</option>
+                <option value="lf">Buy a future</option>
+                <option value="sf">Sell a future</option>
+                <option value="bcs">Bull call spread</option>
+                <option value="bps">Bear put spread</option>
+                <option value="ls">Long straddle</option>
+                <option value="ss">Short strangle</option>
+                <option value="ic">Iron condor</option>
+              </select>
+            </label>
+            <label for="lab-spot"><div class="row"><span>NIFTY now</span><span class="v" id="lab-spot-v"></span></div><input type="range" id="lab-spot" min="23000" max="27000" step="50" value="25000"></label>
+            <label for="lab-strike"><div class="row"><span>Strike</span><span class="v" id="lab-strike-v"></span></div><input type="range" id="lab-strike" min="23500" max="26500" step="100" value="25000"></label>
+            <label for="lab-days"><div class="row"><span>Days to expiry</span><span class="v" id="lab-days-v"></span></div><input type="range" id="lab-days" min="1" max="60" step="1" value="7"></label>
+            <label for="lab-iv"><div class="row"><span>Implied volatility</span><span class="v" id="lab-iv-v"></span></div><input type="range" id="lab-iv" min="8" max="40" step="1" value="13"></label>
+            <label for="lab-lot">Lot size (example)<input type="number" id="lab-lot" min="1" step="1" value="75"></label>
+          </div>
+          <div class="out">
+            <table id="lab-legs" aria-label="Legs of the position"></table>
+            <div class="kpis">
+              <div class="kpi"><span>Net premium</span><b id="k-net"></b></div>
+              <div class="kpi"><span>Breakeven</span><b id="k-be"></b></div>
+              <div class="kpi"><span>Max profit</span><b id="k-max" class="gain"></b></div>
+              <div class="kpi"><span>Max loss</span><b id="k-min" class="loss"></b></div>
+              <div class="kpi"><span>Delta (per lot)</span><b id="k-delta"></b></div>
+              <div class="kpi"><span>Theta (₹ / day)</span><b id="k-theta"></b></div>
+            </div>
+          </div>
+        </div>
+        <svg class="chart" id="lab-chart" role="img" aria-label="Profit and loss of the chosen position"></svg>
+        <div class="legend"><span><i class="solid"></i>At expiry</span><span><i class="dash"></i>Today, before expiry</span><span><i style="background:var(--gain);opacity:.4"></i>Profit</span><span><i style="background:var(--loss);opacity:.4"></i>Loss</span></div>
+        <p class="lab-note">Premiums come from the Black-Scholes model with a 6.5% interest rate, so they are close to, but not the same as, live prices. Charges and taxes are not included.</p>
+      </div>
+      <div class="note plain-en">
+        <span class="tag">Try this</span>
+        <p>Choose <b>Buy a call</b>, then drag <b>Days to expiry</b> from 30 down to 1. The dashed "today" curve sinks toward the expiry line: that is theta. Now raise <b>Implied volatility</b>: the premium jumps and the breakeven moves further away. That is why buying options before big news is expensive.</p>
+      </div>
+    </section>
+
+    <!-- 08 -->
+    <section class="ch" id="strategies">
+      <div class="ch-head">
+        <span class="ch-num">08</span>
+        <h2>Strategies to start with</h2>
+        <p>Combine positions to match your view and cap your risk.</p>
+      </div>
+      <p>A strategy is two or more positions held together. The point of most strategies is to limit how much you can lose, often in exchange for limiting how much you can make. Positions that offset each other are <dfn>hedged</dfn>, and hedged positions need less margin.</p>
+      <div class="panel scroll-x">
+        <table>
+          <thead><tr><th>Your view</th><th>Strategy</th><th>How it's built</th><th>Max loss</th><th>Max profit</th></tr></thead>
+          <tbody>
+            <tr><td>Mildly up, own the shares</td><td><b>Covered call</b></td><td>Own shares, sell an OTM call</td><td>Share falls, cushioned by premium</td><td>Capped at the call strike</td></tr>
+            <tr><td>Protect shares from a fall</td><td><b>Protective put</b></td><td>Own shares, buy a put</td><td class="gain">Limited</td><td>Unlimited, minus the put's cost</td></tr>
+            <tr><td>Moderately up</td><td><b>Bull call spread</b></td><td>Buy a call, sell a higher-strike call</td><td class="gain">Net premium paid</td><td>Gap between strikes − net paid</td></tr>
+            <tr><td>Moderately down</td><td><b>Bear put spread</b></td><td>Buy a put, sell a lower-strike put</td><td class="gain">Net premium paid</td><td>Gap between strikes − net paid</td></tr>
+            <tr><td>Big move, either way</td><td><b>Long straddle</b></td><td>Buy a call and a put at the same strike</td><td class="gain">Both premiums</td><td>Large</td></tr>
+            <tr><td>Quiet market</td><td><b>Short strangle</b></td><td>Sell an OTM call and an OTM put</td><td class="loss">Unlimited</td><td>Both premiums</td></tr>
+            <tr><td>Quiet market, capped risk</td><td><b>Iron condor</b></td><td>Short strangle plus further OTM call and put bought as protection</td><td class="gain">Limited</td><td>Net premium received</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note watch">
+        <span class="tag">Watch out</span>
+        <p>Selling options without protection (<dfn>naked selling</dfn>) wins small amounts often and then loses a large amount at once. A single surprise gap can wipe out months of premium. Learn with defined-risk spreads first. Load any of these into the <a href="#lab">option lab</a> to see the shape.</p>
+      </div>
+    </section>
+
+    <!-- 09 -->
+    <section class="ch" id="money">
+      <div class="ch-head">
+        <span class="ch-num">09</span>
+        <h2>Margin, costs and tax</h2>
+        <p>What you put up, what you pay on every trade, and how profits are taxed.</p>
+      </div>
+      <h3>Margin rules you'll meet</h3>
+      <ul class="plain">
+        <li>The full margin must be in your account <b>before</b> you trade. Brokers can no longer give extra intraday leverage beyond exchange margins.</li>
+        <li><b>Option buyers</b> pay the full premium up front and nothing more.</li>
+        <li><b>Option sellers and futures traders</b> have margin blocked, often ₹1 lakh or more per index lot. Hedged positions, such as spreads, need much less.</li>
+        <li>On expiry day, exchanges charge extra margin on short options, and some offset benefits stop. Expect higher blocks that day.</li>
+      </ul>
+      <h3>The charges on every trade</h3>
+      <div class="panel scroll-x">
+        <table>
+          <thead><tr><th>Charge</th><th>What it is</th><th>Futures</th><th>Options</th></tr></thead>
+          <tbody>
+            <tr><td><b>Brokerage</b></td><td>Your broker's fee</td><td colspan="2">Often a flat ₹20 per executed order at discount brokers</td></tr>
+            <tr><td><b>STT</b></td><td>Securities transaction tax, to the government</td><td class="mono">0.02% of sell value</td><td class="mono">0.1% of sell premium; 0.125% of intrinsic value if exercised</td></tr>
+            <tr><td><b>Exchange charges</b></td><td>The exchange's fee</td><td class="mono">≈0.002% of value</td><td class="mono">≈0.035% of premium</td></tr>
+            <tr><td><b>SEBI fee</b></td><td>Regulator's fee</td><td colspan="2" class="mono">₹10 per crore of turnover</td></tr>
+            <tr><td><b>Stamp duty</b></td><td>Charged on the buy side only</td><td class="mono">0.002%</td><td class="mono">0.003% of premium</td></tr>
+            <tr><td><b>GST</b></td><td>18% tax on services</td><td colspan="2">On brokerage, exchange charges and SEBI fee</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note example">
+        <span class="tag">Worked example (illustrative)</span>
+        <p>Buy one NIFTY call lot of 75 at ₹150 and sell it at ₹160. Gross profit: <span class="num">₹10 × 75 = ₹750</span>. Charges: brokerage ₹40, STT ₹12, exchange charges ≈ ₹8, GST ≈ ₹9, stamp duty and SEBI fee under ₹1. Total ≈ <span class="num">₹69</span>, so you keep about <span class="num">₹681</span>. On small, frequent trades, charges take a big share. Rates shown are as of 2025; use your broker's charges calculator for exact figures.</p>
+      </div>
+      <h3>Tax, in outline</h3>
+      <ul class="plain">
+        <li>F&amp;O profits are treated as <b>business income</b> (non-speculative) and taxed at your income-tax slab rate.</li>
+        <li>Costs of trading (brokerage, data subscriptions, internet, a share of equipment) can be claimed as business expenses.</li>
+        <li>F&amp;O losses can be set off against other income except salary, and carried forward for eight years if you file your return on time.</li>
+        <li>You file <b>ITR-3</b>. Depending on your turnover and profit, a tax audit may be required. F&amp;O "turnover" for tax is calculated from your profits and losses, not from contract values. A chartered accountant will do this properly.</li>
+      </ul>
+    </section>
+
+    <!-- 10 -->
+    <section class="ch" id="risk">
+      <div class="ch-head">
+        <span class="ch-num">10</span>
+        <h2>Managing risk</h2>
+        <p>The part that decides whether you're still trading next year.</p>
+      </div>
+      <p>Professionals decide how much they are willing to lose before they think about how much they might make. The most common rule: risk no more than <b>1%</b> of your trading capital on any single trade. With ₹5 lakh, that is ₹5,000. Ten losing trades in a row would cost about 10%, which you can recover from.</p>
+      <h3>Position size calculator</h3>
+      <div class="panel">
+        <div class="calc">
+          <div class="ctrl"><label for="ps-cap">Trading capital (₹)<input type="number" id="ps-cap" value="500000" min="0" step="10000"></label></div>
+          <div class="ctrl"><label for="ps-risk">Risk per trade (%)<input type="number" id="ps-risk" value="1" min="0.1" max="5" step="0.1"></label></div>
+          <div class="ctrl"><label for="ps-lot">Lot size<input type="number" id="ps-lot" value="75" min="1" step="1"></label></div>
+          <div class="ctrl"><label for="ps-entry">Entry price (₹)<input type="number" id="ps-entry" value="180" min="0" step="0.05"></label></div>
+          <div class="ctrl"><label for="ps-stop">Stop-loss price (₹)<input type="number" id="ps-stop" value="140" min="0" step="0.05"></label></div>
+          <div class="ctrl"><label for="ps-target">Target price (₹)<input type="number" id="ps-target" value="260" min="0" step="0.05"></label></div>
+        </div>
+        <div class="result">
+          <div class="kpi"><span>Allowed loss</span><b id="ps-allow"></b></div>
+          <div class="kpi"><span>Loss per lot</span><b id="ps-perlot"></b></div>
+          <div class="kpi"><span>Lots you can take</span><b id="ps-lots"></b></div>
+          <div class="kpi"><span>Reward : risk</span><b id="ps-rr"></b></div>
+        </div>
+        <div class="verdict" id="ps-verdict"></div>
+      </div>
+      <h3>Rules that keep you in the game</h3>
+      <ul class="plain">
+        <li><b>Decide the stop before you enter, and place it.</b> Never move a stop further away to avoid taking a loss.</li>
+        <li><b>Look for reward at least 1.5× the risk.</b> Then you can be wrong more often than right and still come out ahead.</li>
+        <li><b>Set a daily loss limit</b>, for example 2–3% of capital. Hit it and stop for the day.</li>
+        <li><b>Don't average down.</b> Adding to a losing position turns a small mistake into a large one.</li>
+        <li><b>Avoid revenge trades.</b> The trade right after a painful loss is usually the worst one of the week.</li>
+        <li><b>Respect events.</b> Results, the budget, RBI policy and global news can gap prices past your stop overnight. Know the calendar.</li>
+        <li><b>Keep a journal.</b> Write down every trade: setup, entry, stop, target, result, and what you'd do differently. After 50 trades your own data will teach you more than any course.</li>
+      </ul>
+    </section>
+
+    <!-- 11 -->
+    <section class="ch" id="day">
+      <div class="ch-head">
+        <span class="ch-num">11</span>
+        <h2>Orders and the trading day</h2>
+        <p>How to place orders, and what a disciplined day looks like.</p>
+      </div>
+      <h3>Order types</h3>
+      <div class="panel scroll-x">
+        <table>
+          <thead><tr><th>Order</th><th>What it does</th><th>Use it when</th></tr></thead>
+          <tbody>
+            <tr><td><b>Market</b></td><td>Buys or sells immediately at the best available price</td><td>Rarely in options; you may get a bad fill in a thin strike</td></tr>
+            <tr><td><b>Limit</b></td><td>Fills only at your price or better</td><td>Most entries and exits</td></tr>
+            <tr><td><b>Stop-loss (SL)</b></td><td>Waits for a trigger price, then places a limit order</td><td>Protecting a position; set the limit a little beyond the trigger</td></tr>
+            <tr><td><b>SL-M</b></td><td>Waits for a trigger, then places a market order</td><td>Futures; many brokers don't allow it for options</td></tr>
+            <tr><td><b>GTT</b></td><td>Good till triggered: sits with the broker until a price is hit</td><td>Swing positions you don't watch all day</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>You also choose a <b>product type</b>. <dfn>MIS</dfn> (intraday) positions are closed automatically by the broker near the end of the day, typically between 3:15 and 3:25 PM. <dfn>NRML</dfn> (normal) positions can be carried overnight until expiry, with full margin.</p>
+      <h3>A disciplined trading day</h3>
+      <div class="day">
+        <div class="slot"><time>8:45 AM</time><p><b>Prepare.</b> Check global markets and GIFT NIFTY, overnight news, the day's results and events, and the F&amp;O ban list. Mark key levels on your watchlist.</p></div>
+        <div class="slot"><time>9:15 AM</time><p><b>Open.</b> Prices jump around as overnight orders hit. Let the first 5–15 minutes settle unless your plan is built for the open.</p></div>
+        <div class="slot"><time>9:30 – 11:30</time><p><b>Trends form.</b> The strongest stocks of the day usually show themselves here. Most clean setups appear in this window.</p></div>
+        <div class="slot"><time>12:00 – 1:30</time><p><b>Lunch lull.</b> Volume drops and moves get choppy. Fewer trades, smaller size.</p></div>
+        <div class="slot"><time>2:30 PM</time><p><b>Last fresh entries.</b> Less time left means less room for a trade to work, and expiry-day options decay fastest now.</p></div>
+        <div class="slot"><time>3:15 PM</time><p><b>Square off.</b> Close intraday positions yourself before the broker does it at market price.</p></div>
+        <div class="slot"><time>3:30 PM</time><p><b>Close and review.</b> Write up every trade in your journal while it's fresh.</p></div>
+      </div>
+      <div class="note rules">
+        <span class="tag">F&amp;O ban</span>
+        <p>Each stock has a market-wide position limit (MWPL). When open interest crosses 95% of it, the stock enters the <dfn>F&amp;O ban</dfn>: nobody can open new positions, only reduce existing ones, until OI falls below 80%. Check the exchange's ban list every morning.</p>
+      </div>
+    </section>
+
+    <!-- 12 -->
+    <section class="ch" id="price">
+      <div class="ch-head">
+        <span class="ch-num">12</span>
+        <h2>Reading price like a pro</h2>
+        <p>The price-action terms used in the OB Terminal, explained.</p>
+      </div>
+      <div class="terms">
+        <div class="term"><b>Swing high / swing low</b><p>A peak with lower highs on both sides, or a trough with higher lows on both sides. These mark structure.</p></div>
+        <div class="term"><b>Break of structure</b><p>A candle closes beyond the latest swing high or low. A close counts; a wick poking through doesn't.</p></div>
+        <div class="term"><b>Order block</b><p>The last opposite-colour candle before a strong move that broke structure. Big orders were likely placed there, so price often reacts when it returns.</p></div>
+        <div class="term"><b>Fair value gap</b><p>A gap inside a fast move where three candles don't overlap. It shows the move was forceful.</p></div>
+        <div class="term"><b>Liquidity</b><p>Clusters of stop orders, usually just beyond equal highs or equal lows. Price is often drawn there before reversing.</p></div>
+        <div class="term"><b>VWAP</b><p>Volume-weighted average price for the day. Buyers above VWAP and sellers below it have the average participant on their side.</p></div>
+        <div class="term"><b>Z, S1, R1, R2</b><p>Z is the entry level in the zone. S1 is where the idea is wrong for a long (R1 for a short). R1 and R2 are targets ahead (S1 and S2 for a short).</p></div>
+        <div class="term"><b>R:R (reward to risk)</b><p>Distance to the target ÷ distance to the stop. 1:2 means you aim to make twice what you risk.</p></div>
+        <div class="term"><b>Strength</b><p>Today's move compared with the stock's normal daily range. A 2% move is huge for a calm stock and ordinary for a volatile one.</p></div>
+        <div class="term"><b>Breadth and sector rotation</b><p>How many stocks are up versus down, and which sectors money is flowing into. A setup that moves with the market and its sector has the wind behind it.</p></div>
+      </div>
+    </section>
+
+    <!-- 13 -->
+    <section class="ch" id="ready">
+      <div class="ch-head">
+        <span class="ch-num">13</span>
+        <h2>Ready-to-trade checklist</h2>
+        <p>Tick every box before each trade. If one stays empty, don't take it.</p>
+      </div>
+      <h3>Before your first real trade</h3>
+      <ul class="plain">
+        <li>Paper trade (record trades without real money) for at least 30 sessions, with a journal.</li>
+        <li>Start with defined-risk trades: bought options or spreads, not naked selling.</li>
+        <li>Trade one lot. Increase size only after 50 journaled trades show a positive result.</li>
+        <li>Keep a cash buffer on top of margin so a bad day doesn't force you out.</li>
+      </ul>
+      <h3>Before every trade</h3>
+      <div class="checks" id="checks">
+        <label><input type="checkbox" id="c1"><span>I can say the setup in one sentence, and which way I expect price to go.</span></label>
+        <label><input type="checkbox" id="c2"><span>Entry, stop-loss and target are written down before I enter.</span></label>
+        <label><input type="checkbox" id="c3"><span>The loss at my stop is within 1% of my capital, and I've worked out the lots.</span></label>
+        <label><input type="checkbox" id="c4"><span>Reward is at least 1.5× the risk.</span></label>
+        <label><input type="checkbox" id="c5"><span>The contract is liquid: tight bid-ask spread and healthy open interest.</span></label>
+        <label><input type="checkbox" id="c6"><span>No results, RBI policy or budget before my planned exit (unless that's the trade).</span></label>
+        <label><input type="checkbox" id="c7"><span>The stock is not in the F&amp;O ban, and I know the expiry and how it settles.</span></label>
+        <label><input type="checkbox" id="c8"><span>Margin is available, with a buffer for daily MTM.</span></label>
+        <label><input type="checkbox" id="c9"><span>I know when I'll exit if neither stop nor target is hit (for intraday, by 3:15 PM).</span></label>
+        <label><input type="checkbox" id="c10"><span>I'm not trading to win back an earlier loss.</span></label>
+      </div>
+      <p class="progress" id="check-progress"></p>
+      <h3>During and after</h3>
+      <ul class="plain">
+        <li><b>During:</b> let the stop and target do their job. Trail the stop only if your plan said you would.</li>
+        <li><b>After:</b> journal the result, a screenshot and a grade for how well you followed the plan, separate from whether you made money.</li>
+      </ul>
+    </section>
+
+    <!-- 14 -->
+    <section class="ch" id="glossary">
+      <div class="ch-head">
+        <span class="ch-num">14</span>
+        <h2>Glossary</h2>
+        <p>Every term you'll hear on a trading desk, in plain words.</p>
+      </div>
+      <div class="gtools">
+        <input type="search" id="g-q" placeholder="Search terms, e.g. theta, margin, OI" aria-label="Search the glossary">
+        <span class="gcount" id="g-count"></span>
+      </div>
+      <div class="chips" id="g-cats" role="group" aria-label="Filter by topic"></div>
+      <dl class="gloss" id="g-list"></dl>
+      <p class="empty" id="g-empty" hidden>No term matches. Try a shorter word.</p>
+    </section>
+
+    <footer class="end">
+      <p>Rules, lot sizes and charges change. Figures here reflect rules as of 2025; check current circulars at <a href="https://www.nseindia.com" target="_blank" rel="noopener">nseindia.com</a> and <a href="https://www.sebi.gov.in" target="_blank" rel="noopener">sebi.gov.in</a>, and your broker's charges page.</p>
+      <p>Examples use illustrative prices and lot sizes. This guide is for education only and is not investment advice.</p>
+    </footer>
+  </main>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const f0 = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 });
+  const f2 = new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const inr = x => (x < 0 ? '−₹' : '₹') + f0.format(Math.abs(Math.round(x)));
+  const inrShort = x => {
+    const a = Math.abs(x), s = x < 0 ? '−' : '';
+    if (a >= 1e7) return s + '₹' + (a / 1e7).toFixed(1) + 'Cr';
+    if (a >= 1e5) return s + '₹' + (a / 1e5).toFixed(1) + 'L';
+    if (a >= 1e3) return s + '₹' + Math.round(a / 1e3) + 'k';
+    return s + '₹' + Math.round(a);
+  };
+  const lvl = x => f0.format(x);
+
+  /* ---------- Black-Scholes ---------- */
+  const R = 0.065;
+  const N = x => {
+    const t = 1 / (1 + 0.2316419 * Math.abs(x));
+    const d = 0.3989423 * Math.exp(-x * x / 2);
+    const p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
+    return x > 0 ? 1 - p : p;
+  };
+  const pdf = x => Math.exp(-x * x / 2) / Math.sqrt(2 * Math.PI);
+  function bs(S, K, T, v, type) {
+    if (T <= 1e-6) {
+      const intr = type === 'c' ? Math.max(S - K, 0) : Math.max(K - S, 0);
+      const delta = type === 'c' ? (S > K ? 1 : 0) : (S < K ? -1 : 0);
+      return { price: intr, delta, theta: 0 };
+    }
+    const sq = Math.sqrt(T), d1 = (Math.log(S / K) + (R + v * v / 2) * T) / (v * sq), d2 = d1 - v * sq, disc = Math.exp(-R * T);
+    if (type === 'c') {
+      return { price: S * N(d1) - K * disc * N(d2), delta: N(d1), theta: (-S * pdf(d1) * v / (2 * sq) - R * K * disc * N(d2)) / 365 };
+    }
+    return { price: K * disc * N(-d2) - S * N(-d1), delta: N(d1) - 1, theta: (-S * pdf(d1) * v / (2 * sq) + R * K * disc * N(-d2)) / 365 };
+  }
+
+  /* ---------- charts drawn to scale, re-drawn on resize ---------- */
+  const niceStep = (span, n) => {
+    const raw = span / Math.max(1, n), p = Math.pow(10, Math.floor(Math.log10(raw))), m = raw / p;
+    return (m < 1.5 ? 1 : m < 3 ? 2 : m < 7 ? 5 : 10) * p;
+  };
+  let uid = 0;
+  function chart(svg, o) {
+    const W = Math.max(260, Math.round(svg.getBoundingClientRect().width || svg.parentNode.clientWidth || 600));
+    const H = o.h || 260;
+    const pad = { l: o.bare ? 8 : 60, r: 14, t: 18, b: o.bare ? 10 : 30 };
+    const n = 200;
+    const xs = Array.from({ length: n + 1 }, (_, i) => o.x0 + (o.x1 - o.x0) * i / n);
+    const series = o.lines.map(l => xs.map(l.f));
+    let lo = Math.min(o.zero === false ? Infinity : 0, ...series.flat());
+    let hi = Math.max(o.zero === false ? -Infinity : 0, ...series.flat());
+    if (o.ymin != null) lo = o.ymin;
+    if (o.ymax != null) hi = o.ymax;
+    const span = (hi - lo) || 1;
+    lo -= span * 0.08; hi += span * 0.1;
+    const xa = Math.min(o.x0, o.x1), xb = Math.max(o.x0, o.x1);
+    const X = x => pad.l + (x - o.x0) / (o.x1 - o.x0) * (W - pad.l - pad.r);
+    const Y = y => pad.t + (hi - Math.max(lo, Math.min(hi, y))) / (hi - lo) * (H - pad.t - pad.b);
+    let s = '';
+    if (!o.bare) {
+      const ys = niceStep(hi - lo, 4);
+      for (let v = Math.ceil(lo / ys) * ys; v <= hi; v += ys) {
+        s += `<line class="grid" x1="${pad.l}" x2="${W - pad.r}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}"/>`;
+        s += `<text class="tick" x="${pad.l - 8}" y="${(Y(v) + 4).toFixed(1)}" text-anchor="end">${o.yfmt(v)}</text>`;
+      }
+      const xsStep = niceStep(xb - xa, Math.max(2, Math.floor((W - pad.l - pad.r) / 100)));
+      for (let v = Math.ceil(xa / xsStep) * xsStep; v <= xb + 1e-9; v += xsStep) {
+        s += `<text class="tick" x="${X(v).toFixed(1)}" y="${H - 9}" text-anchor="middle">${o.xfmt(v)}</text>`;
+      }
+    }
+    if (o.zone) s += `<rect class="zone" x="${Math.min(X(o.zone[0]), X(o.zone[1])).toFixed(1)}" y="${pad.t}" width="${Math.abs(X(o.zone[1]) - X(o.zone[0])).toFixed(1)}" height="${H - pad.t - pad.b}"/>`;
+    if (lo < 0 && hi > 0 && o.zero !== false) s += `<line class="zero" x1="${pad.l}" x2="${W - pad.r}" y1="${Y(0).toFixed(1)}" y2="${Y(0).toFixed(1)}"/>`;
+    if (o.fill) {
+      const id = 'c' + (++uid), y0 = Y(0);
+      const d = 'M' + xs.map((x, i) => `${X(x).toFixed(1)},${Y(series[0][i]).toFixed(1)}`).join('L') + `L${X(o.x1).toFixed(1)},${y0.toFixed(1)}L${X(o.x0).toFixed(1)},${y0.toFixed(1)}Z`;
+      s += `<defs><clipPath id="${id}g"><rect x="0" y="0" width="${W}" height="${y0.toFixed(1)}"/></clipPath><clipPath id="${id}l"><rect x="0" y="${y0.toFixed(1)}" width="${W}" height="${(H - y0).toFixed(1)}"/></clipPath></defs>`;
+      s += `<path class="fill-gain" d="${d}" clip-path="url(#${id}g)"/><path class="fill-loss" d="${d}" clip-path="url(#${id}l)"/>`;
+    }
+    o.lines.forEach((l, k) => {
+      s += `<path class="ln ${l.cls || ''}" d="M${xs.map((x, i) => `${X(x).toFixed(1)},${Y(series[k][i]).toFixed(1)}`).join('L')}"/>`;
+    });
+    (o.vlines || []).forEach(v => {
+      s += `<line class="vmark" x1="${X(v.x).toFixed(1)}" x2="${X(v.x).toFixed(1)}" y1="${pad.t}" y2="${H - pad.b}"/>`;
+      if (v.label) s += `<text class="vlab" x="${(X(v.x) + (v.end ? -5 : 5)).toFixed(1)}" y="${pad.t + 10}" text-anchor="${v.end ? 'end' : 'start'}">${v.label}</text>`;
+    });
+    (o.dots || []).forEach(d => {
+      s += `<circle class="dot" cx="${X(d.x).toFixed(1)}" cy="${Y(d.y).toFixed(1)}" r="4"/>`;
+      if (d.label) s += `<text class="dlab" x="${X(d.x).toFixed(1)}" y="${(Y(d.y) + (d.below ? 18 : -9)).toFixed(1)}" text-anchor="middle">${d.label}</text>`;
+    });
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    svg.setAttribute('height', H);
+    svg.innerHTML = s;
+  }
+
+  const drawers = [];
+  const add = fn => { drawers.push(fn); fn(); };
+  let rz = 0;
+  window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => drawers.forEach(fn => fn()), 120); });
+
+  /* ---------- opener shapes ---------- */
+  add(() => chart($('hero-fut'), { h: 130, bare: true, x0: 0, x1: 10, lines: [{ f: x => x - 5 }], fill: true }));
+  add(() => chart($('hero-opt'), { h: 130, bare: true, x0: 0, x1: 10, lines: [{ f: x => Math.max(x - 5, 0) - 1.2 }], fill: true }));
+
+  /* ---------- futures payoff ---------- */
+  add(() => chart($('fut-payoff'), {
+    h: 260, x0: 1800, x1: 2200, fill: false,
+    lines: [{ f: x => (x - 2000) * 500 }, { f: x => (2000 - x) * 500, cls: 'short' }],
+    xfmt: v => '₹' + lvl(v), yfmt: inrShort,
+    dots: [{ x: 2000, y: 0, label: 'Entry ₹2,000', below: true }],
+  }));
+
+  /* ---------- the four basic positions ---------- */
+  const K0 = 25000, P0 = 180, L0 = 75;
+  const mini = (id, f) => add(() => chart($(id), { h: 150, x0: 24500, x1: 25500, fill: true, lines: [{ f }], xfmt: v => lvl(v / 1000) + 'k', yfmt: inrShort, vlines: [{ x: K0 }] }));
+  mini('m-bc', x => (Math.max(x - K0, 0) - P0) * L0);
+  mini('m-bp', x => (Math.max(K0 - x, 0) - P0) * L0);
+  mini('m-sc', x => (P0 - Math.max(x - K0, 0)) * L0);
+  mini('m-sp', x => (P0 - Math.max(K0 - x, 0)) * L0);
+
+  /* ---------- theta and delta ---------- */
+  add(() => chart($('theta-curve'), {
+    h: 240, x0: 45, x1: 0, zero: false, ymin: 0,
+    lines: [{ f: d => bs(25000, 25000, d / 365, 0.13, 'c').price }, { f: d => bs(25000, 25300, d / 365, 0.13, 'c').price, cls: 'alt' }],
+    xfmt: v => v + 'd', yfmt: v => '₹' + Math.round(v),
+    zone: [14, 0], vlines: [{ x: 14, label: 'last two weeks' }],
+  }));
+  add(() => chart($('delta-curve'), {
+    h: 240, x0: 24200, x1: 25800, zero: false, ymin: 0, ymax: 1,
+    lines: [{ f: x => bs(x, 25000, 30 / 365, 0.13, 'c').delta }, { f: x => bs(x, 25000, 2 / 365, 0.13, 'c').delta, cls: 'alt' }],
+    xfmt: v => lvl(v), yfmt: v => v.toFixed(1),
+    vlines: [{ x: 25000, label: 'strike 25,000' }],
+  }));
+
+  /* ---------- option lab ---------- */
+  const lab = { strat: $('lab-strat'), spot: $('lab-spot'), strike: $('lab-strike'), days: $('lab-days'), iv: $('lab-iv'), lot: $('lab-lot') };
+  const legsFor = (s, K) => ({
+    bc: [{ t: 'c', q: 1, K }],
+    bp: [{ t: 'p', q: 1, K }],
+    sc: [{ t: 'c', q: -1, K }],
+    sp: [{ t: 'p', q: -1, K }],
+    lf: [{ t: 'f', q: 1 }],
+    sf: [{ t: 'f', q: -1 }],
+    bcs: [{ t: 'c', q: 1, K }, { t: 'c', q: -1, K: K + 200 }],
+    bps: [{ t: 'p', q: 1, K }, { t: 'p', q: -1, K: K - 200 }],
+    ls: [{ t: 'c', q: 1, K }, { t: 'p', q: 1, K }],
+    ss: [{ t: 'c', q: -1, K: K + 300 }, { t: 'p', q: -1, K: K - 300 }],
+    ic: [{ t: 'c', q: -1, K: K + 200 }, { t: 'c', q: 1, K: K + 500 }, { t: 'p', q: -1, K: K - 200 }, { t: 'p', q: 1, K: K - 500 }],
+  }[s]);
+  const name = l => l.t === 'f' ? 'Future' : `${lvl(l.K)} ${l.t === 'c' ? 'call' : 'put'}`;
+
+  function drawLab() {
+    const S = +lab.spot.value, K = +lab.strike.value, D = +lab.days.value, v = +lab.iv.value / 100, lot = Math.max(1, Math.round(+lab.lot.value || 1));
+    $('lab-spot-v').textContent = lvl(S);
+    $('lab-strike-v').textContent = lvl(K);
+    $('lab-days-v').textContent = D + (D === 1 ? ' day' : ' days');
+    $('lab-iv-v').textContent = Math.round(v * 100) + '%';
+    const T = D / 365, F0 = S * Math.exp(R * T);
+    const legs = legsFor(lab.strat.value, K).map(l => {
+      if (l.t === 'f') return { ...l, prem: F0, g: { delta: 1, theta: 0 } };
+      const g = bs(S, l.K, T, v, l.t);
+      return { ...l, prem: g.price, g };
+    });
+    const atExpiry = x => legs.reduce((a, l) => a + l.q * ((l.t === 'f' ? x : l.t === 'c' ? Math.max(x - l.K, 0) : Math.max(l.K - x, 0)) - l.prem), 0) * lot;
+    const today = x => legs.reduce((a, l) => a + l.q * ((l.t === 'f' ? x * Math.exp(R * T) : bs(x, l.K, T, v, l.t).price) - l.prem), 0) * lot;
+    const net = legs.filter(l => l.t !== 'f').reduce((a, l) => a + l.q * l.prem, 0) * lot;
+    $('lab-legs').innerHTML = '<tr><th>Leg</th><th class="num">Price</th><th class="num">Delta</th></tr>' + legs.map(l =>
+      `<tr><td>${l.q > 0 ? 'Buy' : 'Sell'} ${name(l)}</td><td class="num">${f2.format(l.prem)}</td><td class="num">${(l.q * l.g.delta).toFixed(2)}</td></tr>`).join('');
+    $('k-net').textContent = legs.every(l => l.t === 'f') ? 'None' : (net > 0 ? 'Pay ' : 'Receive ') + inr(Math.abs(net));
+
+    // range, breakevens, max profit / loss
+    const x0 = S * 0.93, x1 = S * 1.07;
+    const wide = Array.from({ length: 2001 }, (_, i) => S * 0.5 + S * i / 2000);
+    const vals = wide.map(atExpiry);
+    const endSlope = (vals[vals.length - 1] - vals[vals.length - 2]), startSlope = (vals[1] - vals[0]);
+    const maxV = Math.max(...vals), minV = Math.min(...vals);
+    $('k-max').textContent = endSlope > 1e-6 || startSlope < -1e-6 ? 'Unlimited' : inr(maxV);
+    $('k-min').textContent = endSlope < -1e-6 ? 'Unlimited' : startSlope > 1e-6 && minV === vals[0] ? inr(minV) + '+' : inr(minV);
+    const bes = [];
+    for (let i = 1; i < wide.length; i++) {
+      const a = vals[i - 1], b = vals[i];
+      if ((a < 0 && b >= 0) || (a > 0 && b <= 0)) bes.push(wide[i - 1] + (wide[i] - wide[i - 1]) * (a / (a - b)));
+    }
+    $('k-be').textContent = bes.length ? bes.map(b => lvl(Math.round(b))).join(' / ') : '—';
+    const pd = legs.reduce((a, l) => a + l.q * l.g.delta, 0) * lot, pt = legs.reduce((a, l) => a + l.q * l.g.theta, 0) * lot;
+    $('k-delta').textContent = (pd >= 0 ? '+' : '−') + f0.format(Math.abs(pd));
+    $('k-theta').textContent = (pt >= 0 ? '+' : '−') + '₹' + f0.format(Math.abs(pt));
+    chart($('lab-chart'), {
+      h: 300, x0, x1, fill: true,
+      lines: [{ f: atExpiry }, { f: today, cls: 'now' }],
+      xfmt: v => lvl(v), yfmt: inrShort,
+      vlines: [{ x: S, label: 'now ' + lvl(S) }],
+      dots: bes.filter(b => b > x0 && b < x1).map(b => ({ x: b, y: 0, label: lvl(Math.round(b)), below: true })),
+    });
+  }
+  Object.values(lab).forEach(el => el.addEventListener('input', drawLab));
+  drawers.push(drawLab);
+  drawLab();
+
+  /* ---------- position size ---------- */
+  const ps = ['ps-cap', 'ps-risk', 'ps-lot', 'ps-entry', 'ps-stop', 'ps-target'].map($);
+  function size() {
+    const [cap, risk, lot, entry, stop, target] = ps.map(e => +e.value || 0);
+    const allow = cap * risk / 100, per = Math.abs(entry - stop) * lot, lots = per > 0 ? Math.floor(allow / per) : 0;
+    const rr = Math.abs(entry - stop) > 0 ? Math.abs(target - entry) / Math.abs(entry - stop) : 0;
+    $('ps-allow').textContent = inr(allow);
+    $('ps-perlot').textContent = inr(per);
+    $('ps-lots').textContent = String(lots);
+    $('ps-rr').textContent = rr ? rr.toFixed(1) + ' : 1' : '—';
+    const v = $('ps-verdict');
+    if (lots < 1) {
+      v.className = 'verdict no';
+      v.textContent = 'Even one lot risks more than you allowed. Use a closer stop that still makes sense, a cheaper contract, or skip this trade.';
+    } else if (rr < 1.5) {
+      v.className = 'verdict no';
+      v.textContent = `Size is fine (${lots} lot${lots > 1 ? 's' : ''}, risking ${inr(per * lots)}), but reward is under 1.5× the risk. Look for a better entry or skip it.`;
+    } else {
+      v.className = 'verdict ok';
+      v.textContent = `Take up to ${lots} lot${lots > 1 ? 's' : ''}. If the stop is hit you lose about ${inr(per * lots)}; at the target you make about ${inr(Math.abs(target - entry) * lot * lots)}, before charges.`;
+    }
+  }
+  ps.forEach(e => e.addEventListener('input', size));
+  size();
+
+  /* ---------- checklist (remembered in this browser only) ---------- */
+  const boxes = [...document.querySelectorAll('#checks input')];
+  const prog = () => {
+    const n = boxes.filter(b => b.checked).length;
+    $('check-progress').textContent = n === boxes.length ? 'All 10 checked. You have a plan.' : `${n} of ${boxes.length} checked`;
+  };
+  try {
+    const saved = JSON.parse(localStorage.getItem('fno-checks') || '[]');
+    boxes.forEach(b => { b.checked = saved.includes(b.id); });
+  } catch (e) { /* storage unavailable */ }
+  boxes.forEach(b => b.addEventListener('change', () => {
+    prog();
+    try { localStorage.setItem('fno-checks', JSON.stringify(boxes.filter(x => x.checked).map(x => x.id))); } catch (e) { /* storage unavailable */ }
+  }));
+  prog();
+
+  /* ---------- glossary ---------- */
+  const G = [
+    ['Arbitrage', 'Market', 'Making a near risk-free profit from a price gap, such as buying shares and selling their future when the future is priced too high.'],
+    ['Ask (offer)', 'Orders', 'The lowest price a seller is currently willing to accept.'],
+    ['At the money (ATM)', 'Options', 'The strike closest to the current price of the underlying.'],
+    ['Average down', 'Risk', 'Buying more of a losing position to lower the average price. Turns small mistakes into big ones.'],
+    ['Basis', 'Futures', 'Futures price minus spot price. Shrinks to zero by expiry.'],
+    ['Bear / bearish', 'Market', 'Expecting prices to fall.'],
+    ['Bear put spread', 'Options', 'Buy a put and sell a lower-strike put. Profits from a moderate fall with limited risk.'],
+    ['Bid', 'Orders', 'The highest price a buyer is currently willing to pay.'],
+    ['Bid-ask spread', 'Orders', 'The gap between the best bid and best ask. Wide spreads cost you on every entry and exit.'],
+    ['Break of structure', 'Price action', 'A candle closing beyond the latest swing high or low, confirming a change or continuation of trend.'],
+    ['Breadth', 'Market', 'How many stocks are rising compared with how many are falling.'],
+    ['Breakeven', 'Options', 'The underlying price at which a position neither makes nor loses money at expiry. For a bought call: strike + premium.'],
+    ['Broker', 'Market', 'The firm that sends your orders to the exchange and holds your margin.'],
+    ['Bull / bullish', 'Market', 'Expecting prices to rise.'],
+    ['Bull call spread', 'Options', 'Buy a call and sell a higher-strike call. Profits from a moderate rise with limited risk.'],
+    ['Call option', 'Options', 'The right to buy the underlying at the strike price until expiry.'],
+    ['Cash settlement', 'Futures', 'Settling a contract by paying the difference in money instead of delivering shares. Used for index F&O.'],
+    ['Clearing corporation', 'Market', 'The body that guarantees every trade and settles money between members, such as NSE Clearing.'],
+    ['Contract note', 'Market', 'The official record of your trades for the day, sent by the broker, listing prices and every charge.'],
+    ['Contract value', 'Futures', 'Price × lot size. Also called notional value. The size of the exposure you control.'],
+    ['Cost of carry', 'Futures', 'The interest cost of holding a position until expiry. The main reason futures trade above spot.'],
+    ['Covered call', 'Options', 'Owning shares and selling a call against them to earn premium, giving up gains above the strike.'],
+    ['Delta', 'Greeks', 'How much an option\'s premium changes for a ₹1 move in the underlying.'],
+    ['Demat account', 'Market', 'The account that holds your shares electronically.'],
+    ['Derivative', 'Market', 'A contract whose value comes from the price of something else, the underlying.'],
+    ['Discount', 'Futures', 'When a future trades below the spot price.'],
+    ['Equal highs / equal lows', 'Price action', 'Two or more swing points at about the same price. Stop orders tend to cluster just beyond them.'],
+    ['European option', 'Options', 'An option that can be exercised only on expiry. All Indian exchange-traded options are European.'],
+    ['Event risk', 'Risk', 'The chance of a sharp move from news such as results, the budget or RBI policy.'],
+    ['Exercise', 'Options', 'Using the right an option gives. In India this happens automatically at expiry for ITM options.'],
+    ['Expiry', 'Market', 'The last day a contract exists. NSE contracts expire on Tuesdays, monthly ones on the last Tuesday of the month.'],
+    ['Exposure margin', 'Money', 'An extra margin buffer charged on top of SPAN margin.'],
+    ['F&O ban', 'Market', 'When a stock\'s open interest crosses 95% of its market-wide position limit, no new positions are allowed until it falls below 80%.'],
+    ['Fair value gap', 'Price action', 'A gap inside a fast move where the first and third of three candles don\'t overlap.'],
+    ['Far month', 'Futures', 'The third and furthest of the three monthly contracts trading at any time.'],
+    ['Futures contract', 'Futures', 'An agreement to buy or sell the underlying at a set price on expiry. Both sides are obligated.'],
+    ['Gamma', 'Greeks', 'How fast delta changes as the underlying moves. Highest for ATM options near expiry.'],
+    ['Gap up / gap down', 'Market', 'When the market opens well above or below the previous close, skipping prices in between.'],
+    ['GIFT NIFTY', 'Market', 'NIFTY futures traded at GIFT City almost round the clock. Used as an early hint of how NIFTY may open.'],
+    ['GTT (good till triggered)', 'Orders', 'An order held by the broker that is placed only when a set price is reached.'],
+    ['Hedge', 'Risk', 'A position taken to reduce the risk of another, such as buying puts to protect shares.'],
+    ['Historical volatility', 'Greeks', 'How much the price actually moved over a past period, expressed as an annual percentage.'],
+    ['Implied volatility (IV)', 'Greeks', 'The size of move that current option prices assume. Higher IV means pricier options.'],
+    ['In the money (ITM)', 'Options', 'An option that would pay if exercised now. A call below the price, or a put above it.'],
+    ['India VIX', 'Market', 'A fear gauge calculated from NIFTY option prices. Rises when traders expect bigger moves.'],
+    ['Initial margin', 'Money', 'The money blocked when you open a futures or short option position: SPAN plus exposure margin.'],
+    ['Intrinsic value', 'Options', 'What an option would pay if exercised right now. Zero for ATM and OTM options.'],
+    ['Iron condor', 'Options', 'Selling an OTM call and put, and buying further OTM ones as protection. Profits in a quiet market with limited risk.'],
+    ['IV crush', 'Greeks', 'A sharp fall in implied volatility after an expected event, which deflates option premiums.'],
+    ['Leverage', 'Money', 'Controlling a large position with a smaller amount of money. Magnifies gains and losses equally.'],
+    ['Limit order', 'Orders', 'An order that fills only at your price or better.'],
+    ['Liquidity', 'Market', 'How easily you can trade without moving the price. Also, in price action, clusters of stop orders beyond obvious highs and lows.'],
+    ['Long', 'Market', 'Having bought. A long position gains when the price rises.'],
+    ['Long build-up', 'Futures', 'Price rising with open interest rising: fresh buying.'],
+    ['Long straddle', 'Options', 'Buying a call and a put at the same strike. Profits from a big move either way.'],
+    ['Long unwinding', 'Futures', 'Price falling with open interest falling: buyers exiting.'],
+    ['Lot size', 'Market', 'The fixed number of shares or units in one F&O contract.'],
+    ['LTP (last traded price)', 'Orders', 'The price of the most recent trade.'],
+    ['Margin', 'Money', 'Money blocked by the broker as security against losses on your positions.'],
+    ['Margin call', 'Money', 'A demand to add money because losses have reduced your margin. Ignored, it leads to forced closing.'],
+    ['Market order', 'Orders', 'An order that fills immediately at the best available price, whatever it is.'],
+    ['Mark-to-market (MTM)', 'Money', 'Settling each day\'s profit or loss on open positions in cash at the day\'s closing price.'],
+    ['Max pain', 'Options', 'The strike at which option buyers as a group would lose the most money at expiry.'],
+    ['MIS', 'Orders', 'Margin intraday square-off. An intraday product the broker closes automatically near the end of the day.'],
+    ['Moneyness', 'Options', 'Whether an option is in, at or out of the money.'],
+    ['MWPL', 'Market', 'Market-wide position limit: the most open interest allowed in a stock\'s F&O contracts.'],
+    ['Naked option', 'Options', 'An option sold without a protective position. Carries large or unlimited risk.'],
+    ['Near month', 'Futures', 'The contract expiring soonest. Usually the most traded.'],
+    ['Next month', 'Futures', 'The contract expiring after the near month.'],
+    ['NRML', 'Orders', 'Normal product. Positions can be carried overnight until expiry with full margin.'],
+    ['Open interest (OI)', 'Futures', 'The number of contracts opened and not yet closed.'],
+    ['Option chain', 'Options', 'A table of all strikes for one underlying and expiry, calls on one side and puts on the other.'],
+    ['Option writer', 'Options', 'The seller of an option. Receives the premium and takes on the obligation.'],
+    ['Order block', 'Price action', 'The last opposite-colour candle before a strong move that broke structure, where large orders were likely placed.'],
+    ['Out of the money (OTM)', 'Options', 'An option that would pay nothing if exercised now. A call above the price, or a put below it.'],
+    ['Paper trading', 'Risk', 'Recording trades as if real, without money, to practise and test a method.'],
+    ['Payoff', 'Options', 'The profit or loss of a position at different prices of the underlying, usually at expiry.'],
+    ['PCR (put-call ratio)', 'Options', 'Total put open interest divided by total call open interest. A gauge of positioning.'],
+    ['Physical settlement', 'Futures', 'Settling a contract by actually delivering shares. Used for all stock F&O.'],
+    ['Position sizing', 'Risk', 'Choosing how many lots to trade so that a loss at your stop stays within your risk limit.'],
+    ['Premium (futures)', 'Futures', 'When a future trades above the spot price.'],
+    ['Premium (options)', 'Options', 'The price of an option, paid by the buyer to the seller.'],
+    ['Protective put', 'Options', 'Buying a put to insure shares you own against a fall.'],
+    ['Put option', 'Options', 'The right to sell the underlying at the strike price until expiry.'],
+    ['R:R (reward to risk)', 'Risk', 'Distance to the target divided by distance to the stop. 1:2 means aiming to make twice what you risk.'],
+    ['Rho', 'Greeks', 'How much an option\'s price changes with interest rates. Small for short-dated options.'],
+    ['Rollover', 'Futures', 'Closing an expiring contract and opening the next month\'s to keep a position.'],
+    ['SEBI', 'Market', 'Securities and Exchange Board of India, the market regulator.'],
+    ['Sector rotation', 'Market', 'Money moving from one sector to another, for example from IT into banks.'],
+    ['Segment', 'Market', 'A part of the market enabled separately in your account: cash, F&O, currency or commodity.'],
+    ['Settlement price', 'Futures', 'The official price used to settle contracts at the end of the day or at expiry.'],
+    ['Short', 'Market', 'Having sold first. A short position gains when the price falls.'],
+    ['Short build-up', 'Futures', 'Price falling with open interest rising: fresh selling.'],
+    ['Short covering', 'Futures', 'Price rising with open interest falling: sellers buying back to exit.'],
+    ['Short strangle', 'Options', 'Selling an OTM call and an OTM put. Profits in a quiet market but has unlimited risk.'],
+    ['SL / SL-M order', 'Orders', 'Stop-loss orders. They wait for a trigger price, then place a limit (SL) or market (SL-M) order.'],
+    ['Slippage', 'Orders', 'The difference between the price you expected and the price you actually got.'],
+    ['SPAN margin', 'Money', 'The exchange\'s estimate of the worst one-day loss on a position, charged as margin.'],
+    ['Spot price', 'Market', 'The current price of the underlying in the cash market.'],
+    ['Square off', 'Orders', 'Closing an open position by taking the opposite trade.'],
+    ['Stop-loss', 'Risk', 'A pre-decided price at which you exit a losing trade.'],
+    ['Strike price', 'Options', 'The fixed price at which an option lets you buy (call) or sell (put).'],
+    ['STT', 'Money', 'Securities transaction tax, charged by the government on every trade.'],
+    ['Swing high / swing low', 'Price action', 'A peak with lower highs on both sides, or a trough with higher lows on both sides.'],
+    ['T+1', 'Market', 'Shares bought settle into your demat account one working day after the trade.'],
+    ['Theta', 'Greeks', 'How much value an option loses per day from the passing of time.'],
+    ['Tick size', 'Market', 'The smallest allowed price step, ₹0.05 for most contracts.'],
+    ['Time value', 'Options', 'The part of an option\'s premium above its intrinsic value. Falls to zero by expiry.'],
+    ['Underlying', 'Market', 'The asset a derivative is based on, such as NIFTY or a stock.'],
+    ['Vega', 'Greeks', 'How much an option\'s price changes for a 1-point change in implied volatility.'],
+    ['Volume', 'Market', 'The number of contracts or shares traded during the day.'],
+    ['VWAP', 'Price action', 'Volume-weighted average price for the day. Used to judge who is in control.'],
+    ['Weekly expiry', 'Options', 'Contracts that expire every week. Now only NIFTY on NSE and SENSEX on BSE.'],
+  ];
+  const cats = ['All', 'Market', 'Futures', 'Options', 'Greeks', 'Money', 'Orders', 'Risk', 'Price action'];
+  let cat = 'All';
+  const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  $('g-cats').innerHTML = cats.map(c => `<button type="button" data-c="${c}" class="${c === cat ? 'on' : ''}" aria-pressed="${c === cat}">${c}</button>`).join('');
+  function gloss() {
+    const q = $('g-q').value.trim().toLowerCase();
+    const list = G.filter(([t, c, d]) => (cat === 'All' || c === cat) && (!q || (t + ' ' + d).toLowerCase().includes(q)));
+    $('g-list').innerHTML = list.map(([t, c, d]) => `<div class="gi"><dt>${esc(t)}<small>${c}</small></dt><dd>${esc(d)}</dd></div>`).join('');
+    $('g-count').textContent = `${list.length} of ${G.length} terms`;
+    $('g-empty').hidden = list.length > 0;
+  }
+  $('g-q').addEventListener('input', gloss);
+  $('g-cats').addEventListener('click', e => {
+    const b = e.target.closest('button[data-c]');
+    if (!b) return;
+    cat = b.dataset.c;
+    [...$('g-cats').children].forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); });
+    gloss();
+  });
+  gloss();
+
+  /* ---------- contents: highlight the chapter on screen ---------- */
+  const links = [...document.querySelectorAll('.toc a')];
+  const byId = new Map(links.map(a => [a.getAttribute('href').slice(1), a]));
+  if ('IntersectionObserver' in window) {
+    const seen = new Map();
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => seen.set(e.target.id, e.isIntersecting ? e.boundingClientRect.top : null));
+      const vis = [...seen].filter(([, t]) => t != null).sort((a, b) => a[1] - b[1]);
+      if (!vis.length) return;
+      links.forEach(a => a.classList.remove('on'));
+      const a = byId.get(vis[0][0]);
+      if (a) a.classList.add('on');
+    }, { rootMargin: '-10% 0px -60% 0px' });
+    document.querySelectorAll('section.ch').forEach(s => io.observe(s));
+  }
+  if (window.matchMedia('(max-width: 960px)').matches) $('toc').open = false;
+})();
+</script>
+<script>
+  // Follow theme changes made in the app (or another tab).
+  window.addEventListener('storage', e => { if (e.key === 'ob:theme' && e.newValue) document.documentElement.dataset.theme = e.newValue; });
+</script>
+</body>
+</html>
