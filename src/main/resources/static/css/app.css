@@ -274,6 +274,10 @@ tr[data-pop]:hover { background: var(--panel-2); }
   .search-x { width: 32px; height: 32px; }
   .top .finder { position: fixed; top: calc(var(--top) + 4px); left: 12px; right: 12px; width: auto; max-width: none; }
   .brand, .pill, .top .icon-btn { flex-shrink: 0; }
+  /* order on the bar: search, logo, market status ... theme, settings */
+  #search-open { order: -3; margin-left: -6px; }
+  .brand { order: -2; }
+  .pill { order: -1; }
   .pill { padding: 0 9px; }
   .pill[data-short] > span { display: none; }
   .pill[data-short]::after { content: attr(data-short); }

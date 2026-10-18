@@ -1,16 +1,12 @@
 package ob.web
 
-import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationCallPipeline
 import io.ktor.server.application.install
 import io.ktor.server.http.content.staticFiles
 import io.ktor.server.http.content.staticResources
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.server.request.path
-import io.ktor.server.response.header
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondRedirect
 import io.ktor.server.response.respondText
@@ -31,8 +27,6 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import ob.App
 import java.io.File
-import java.security.MessageDigest
-import java.util.Base64
 
 val json = Json {
     encodeDefaults = true
@@ -43,7 +37,7 @@ val json = Json {
 fun Application.module(app: App, password: String? = null) {
     install(ContentNegotiation) { json(json) }
     install(SSE)
-    if (password != null) lock(password)
+    if (password != null) passwordLock(password)
 
     routing {
         get("/health") { call.respondText("ok") }
@@ -95,24 +89,6 @@ fun Application.module(app: App, password: String? = null) {
 
         // One stream per open page: "status", then the board every minute and quotes every ~2 s.
         sse("/api/stream") { stream(app) }
-    }
-}
-
-/** HTTP Basic sign-in for a public deploy: any user name, the password must match. /health stays open for the host's checks. */
-private fun Application.lock(password: String) {
-    val expected = password.toByteArray()
-    intercept(ApplicationCallPipeline.Plugins) {
-        val call = context
-        if (call.request.path() == "/health") return@intercept
-        val given = call.request.headers[HttpHeaders.Authorization]
-            ?.takeIf { it.startsWith("Basic ", ignoreCase = true) }
-            ?.let { runCatching { String(Base64.getDecoder().decode(it.substring(6).trim())) }.getOrNull() }
-            ?.substringAfter(':', "")
-        if (given == null || !MessageDigest.isEqual(given.toByteArray(), expected)) {
-            call.response.header(HttpHeaders.WWWAuthenticate, "Basic realm=\"OB Terminal\", charset=\"UTF-8\"")
-            call.respond(HttpStatusCode.Unauthorized)
-            finish()
-        }
     }
 }
 

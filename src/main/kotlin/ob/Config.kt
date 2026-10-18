@@ -11,7 +11,7 @@ data class Config(
     val dataDir: File,
     val simStart: Int,
     val simSpeed: Double,
-    /** When set, every page and API call asks for this password (browser sign-in box, any user name). */
+    /** When set, the site shows a sign-in page and remembers the device for a year (see web/Login.kt). */
     val password: String?,
 )
 
