@@ -142,6 +142,8 @@ window.OB = (() => {
     const m = $('#mkt');
     m.className = 'pill ' + b.market.state;
     m.lastElementChild.textContent = b.market.label;
+    m.title = b.market.label;
+    m.dataset.short = { open: 'Live', pre: 'Pre-open', closed: 'Closed' }[b.market.state] || 'Market';
     $('#clock').textContent = fmt.hhmm(b.t) + ' IST';
     const open = b.scorecard.open + b.plans.filter(p => p.status === 'waiting').length;
     $$('[data-plans-badge]').forEach(e => { e.hidden = open === 0; });
@@ -229,8 +231,25 @@ window.OB = (() => {
     window.OB.pop.open(x.symbol, [x.symbol]);
   }
 
+  // Without the rail the search field is hidden behind an icon; it opens over the top bar and closes when it loses focus.
+  const openSearch = () => {
+    $('.top').classList.add('searching');
+    $('#search').focus();
+  };
+  $('#search-open').addEventListener('click', openSearch);
+  $('.search-x').addEventListener('mousedown', e => {
+    e.preventDefault();
+    $('#search').value = '';
+    search('');
+    $('#search').blur();
+  });
+
   $('#search').addEventListener('input', e => search(e.target.value));
   $('#search').addEventListener('keydown', e => {
+    if (e.key === 'Escape' && (finder.hidden || !found.length)) {
+      e.target.blur();
+      return;
+    }
     if (finder.hidden || !found.length) return;
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault();
@@ -243,7 +262,10 @@ window.OB = (() => {
       finder.hidden = true;
     }
   });
-  $('#search').addEventListener('blur', () => setTimeout(() => { finder.hidden = true; }, 150));
+  $('#search').addEventListener('blur', () => setTimeout(() => {
+    finder.hidden = true;
+    $('.top').classList.remove('searching');
+  }, 150));
   finder.addEventListener('mousedown', e => {
     const r = e.target.closest('.fr[data-i]');
     if (r) {
@@ -261,6 +283,7 @@ window.OB = (() => {
       if (es.readyState === EventSource.OPEN) return;
       $('#mkt').className = 'pill';
       $('#mkt').lastElementChild.textContent = 'Reconnecting';
+      $('#mkt').dataset.short = 'Offline';
     });
   }
 
@@ -296,7 +319,7 @@ window.OB = (() => {
   document.addEventListener('keydown', e => {
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
       e.preventDefault();
-      $('#search').focus();
+      openSearch();
     }
   });
   window.addEventListener('hashchange', route);

@@ -313,3 +313,11 @@
 
 /* desktop: counts sit at the top of the crest, clear of the funnel */
 .tx > .crest .ccount { top: 0; }
+
+/* phones: both sector tags share one line, the sector name shortens instead of running off screen */
+@media (max-width: 640px) {
+  .ctags { display: flex; justify-content: space-between; gap: 10px; }
+  .ctag { position: static; min-width: 0; max-width: 50%; padding: 0; }
+  .ctag .kx { display: none; }
+  .ctag b { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+}

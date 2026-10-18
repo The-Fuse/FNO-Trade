@@ -478,7 +478,7 @@
     const tag = (sec, up) => {
       if (!sec) return '';
       return `<div class="ctag ${up ? 'up' : 'dn'}">`
-        + (up ? '<span class="arr pos">↗</span>' : '') + `<span class="k">${up ? 'Leading' : 'Lagging'} sector</span><b>${esc(sec.name)}</b>`
+        + (up ? '<span class="arr pos">↗</span>' : '') + `<span class="k">${up ? 'Leading' : 'Lagging'}<span class="kx"> sector</span></span><b>${esc(sec.name)}</b>`
         + `<span class="${tone(sec.chg)}">${fmt.pct(sec.chg)}</span>` + (up ? '' : '<span class="arr neg">↘</span>') + '</div>';
     };
     $('.ctags', el).innerHTML = tag(lag, false) + tag(lead, true);

@@ -157,7 +157,7 @@ body[data-view="learn"] .foot { display: none; }
 .empty { padding: 18px; color: var(--faint); text-align: center; }
 
 /* ---------- home ---------- */
-.home { display: grid; gap: 14px; padding: 16px; max-width: 1400px; }
+.home { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; padding: 16px; max-width: 1400px; }
 .hero { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; }
 .hero h1 { margin: 0; font-size: 22px; letter-spacing: -.02em; }
 .hero p { margin: 4px 0 0; color: var(--muted); }
@@ -165,9 +165,9 @@ body[data-view="learn"] .foot { display: none; }
 .score div { display: flex; flex-direction: column; gap: 2px; min-width: 78px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
 .score b { font: 600 15px var(--font-mono); }
 .picks { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.picks h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 13px; }
-.pick-col { display: grid; gap: 10px; align-content: start; }
-.pick { position: relative; display: grid; gap: 10px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); cursor: pointer; transition: border-color .15s, transform .15s; }
+.picks h2 { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 0 0 8px; font-size: 13px; }
+.pick-col { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; align-content: start; }
+.pick { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); cursor: pointer; transition: border-color .15s, transform .15s; }
 .pick.bull { background: linear-gradient(160deg, color-mix(in srgb, var(--pos) 9%, var(--panel)), var(--panel) 55%); border-color: color-mix(in srgb, var(--pos) 28%, var(--line)); }
 .pick.bear { background: linear-gradient(160deg, color-mix(in srgb, var(--neg) 9%, var(--panel)), var(--panel) 55%); border-color: color-mix(in srgb, var(--neg) 28%, var(--line)); }
 .pick:hover { transform: translateY(-1px); }
@@ -205,7 +205,7 @@ tr[data-pop]:hover { background: var(--panel-2); }
 .scroll-x { overflow-x: auto; }
 
 /* ---------- plans ---------- */
-.plans { display: grid; gap: 14px; padding: 16px; max-width: 1400px; }
+.plans { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; padding: 16px; max-width: 1400px; }
 .plans h1 { margin: 0; font-size: 22px; letter-spacing: -.02em; }
 .rules { margin: 0; padding: 12px 14px 12px 32px; color: var(--muted); line-height: 1.6; }
 .rules b { color: var(--text); }
@@ -266,12 +266,22 @@ tr[data-pop]:hover { background: var(--panel-2); }
   .rail { display: none; }
   .m-only { display: inline-flex !important; }
   .brand { display: inline-flex; }
-  .search { width: auto; flex: 1; max-width: 260px; }
+  /* no rail: search is an icon that opens a full-width bar over the top bar; the status pill shows one word; Connect lives in the notice */
+  .search { display: none; }
+  .top.searching .search { display: flex; position: absolute; top: 7px; left: 12px; right: 12px; z-index: 2; width: auto; height: 38px; padding-right: 2px; }
+  .top.searching > :not(.search) { visibility: hidden; }
   .search kbd { display: none; }
+  .search-x { width: 32px; height: 32px; }
+  .top .finder { position: fixed; top: calc(var(--top) + 4px); left: 12px; right: 12px; width: auto; max-width: none; }
+  .brand, .pill, .top .icon-btn { flex-shrink: 0; }
+  .pill { padding: 0 9px; }
+  .pill[data-short] > span { display: none; }
+  .pill[data-short]::after { content: attr(data-short); }
+  #connect { display: none; }
   .tabs { position: sticky; top: var(--top); z-index: 14; display: flex !important; border-bottom: 1px solid var(--line); background: var(--bg); }
   .tabs a { flex: 1; padding: 10px 0; border-bottom: 2px solid transparent; color: var(--muted); font-weight: 600; text-align: center; text-decoration: none; }
   .tabs a.on { border-color: var(--text); color: var(--text); }
-  .picks, .mk { grid-template-columns: 1fr; }
+  .picks, .mk { grid-template-columns: minmax(0, 1fr); }
   .pop { width: 100%; max-height: 92vh; border-radius: 18px 18px 0 0; }
   .pop.pinned { inset: auto 0 0 0 !important; transform: none; }
   .pop-card { border-left-width: 1px; border-top-width: 3px; border-radius: 18px 18px 0 0; padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
