@@ -1,5 +1,6 @@
 package ob.web
 
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
@@ -7,10 +8,13 @@ import io.ktor.server.application.install
 import io.ktor.server.http.content.staticFiles
 import io.ktor.server.http.content.staticResources
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.request.contentType
+import io.ktor.server.request.receiveText
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondRedirect
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
+import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
 import io.ktor.server.sse.SSE
 import io.ktor.server.sse.ServerSSESession
@@ -26,6 +30,8 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import ob.App
+import ob.sessionDate
+import ob.trade.AccountUpdate
 import java.io.File
 
 val json = Json {
@@ -67,6 +73,27 @@ fun Application.module(app: App, password: String? = null) {
             if (c == null) call.respond(HttpStatusCode.NotFound, mapOf("error" to "Unknown symbol")) else call.respond(c)
         }
 
+        // the paper account: balance carried day to day, how each plan was sized
+        get("/api/account") { call.respond(accountView(app)) }
+
+        post("/api/account") {
+            // JSON only: a form on another site can't send this without the browser asking first
+            if (call.request.contentType().withoutParameters() != ContentType.Application.Json) {
+                return@post call.respond(HttpStatusCode.UnsupportedMediaType)
+            }
+            val u = runCatching { json.decodeFromString<AccountUpdate>(call.receiveText()) }.getOrNull()
+                ?: return@post call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Bad request"))
+            app.account.update(u.capital, u.riskPct)
+            app.engine.value?.refresh()
+            call.respond(accountView(app))
+        }
+
+        post("/api/account/reset") {
+            app.account.reset()
+            app.engine.value?.refresh()
+            call.respond(accountView(app))
+        }
+
         get("/login/upstox") {
             val api = app.upstox
             if (api == null) call.respondText("Upstox feed is off (FEED=sim)", status = HttpStatusCode.BadRequest)
@@ -91,6 +118,10 @@ fun Application.module(app: App, password: String? = null) {
         sse("/api/stream") { stream(app) }
     }
 }
+
+private fun accountView(app: App) =
+    app.engine.value?.board?.value?.account
+        ?: app.account.view(app.engine.value?.session ?: sessionDate(System.currentTimeMillis(), emptySet()))
 
 @OptIn(ExperimentalCoroutinesApi::class)
 private suspend fun ServerSSESession.stream(app: App) = coroutineScope {

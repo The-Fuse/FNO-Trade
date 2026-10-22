@@ -5,6 +5,7 @@ import kotlinx.serialization.encodeToString
 import ob.Candle
 import ob.istMinuteOfDay
 import ob.r2
+import ob.trade.Sized
 import ob.web.json
 import org.slf4j.LoggerFactory
 import java.io.File
@@ -50,6 +51,7 @@ data class PlanState(
     val r: Double? = null,       // realised, in multiples of the planned risk
     val openR: Double? = null,   // marked to the last price while in the trade
     val t1Hit: Boolean = false,
+    val size: Sized? = null,     // how the paper account took it
 )
 
 @Serializable

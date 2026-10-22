@@ -18,6 +18,7 @@ import ob.engine.Rules
 import ob.engine.Strength
 import ob.market.Series
 import ob.sim.SimMarket
+import ob.trade.Account
 import ob.upstox.Upstox
 import ob.upstox.UpstoxAuthException
 import ob.upstox.UpstoxFeed
@@ -47,6 +48,7 @@ class App(private val cfg: Config) {
     val status = MutableStateFlow(Status(cfg.feed, "starting", "Starting"))
     val engine = MutableStateFlow<Engine?>(null)
     val upstox: Upstox? = if (cfg.feed == "upstox") Upstox(cfg) else null
+    val account = Account(File(cfg.dataDir, "account.json"))
 
     fun start() {
         val api = upstox
@@ -97,7 +99,7 @@ class App(private val cfg: Config) {
         }.toMap()
         val speed = if (cfg.simSpeed % 1.0 == 0.0) cfg.simSpeed.toLong().toString() else cfg.simSpeed.toString()
         val label = "Simulated ${speed}×"
-        val eng = Engine(stocks, series, ctx, date, sim, { marketState(it, date, label) })
+        val eng = Engine(stocks, series, ctx, date, sim, { marketState(it, date, label) }, account = account)
         eng.start(this)
         engine.value = eng
         status.value = Status("sim", "ready", label)
@@ -141,7 +143,7 @@ class App(private val cfg: Config) {
                 }
 
                 val planFile = File(cfg.dataDir, "plans-$session.json")
-                val eng = Engine(stocks, series, ctx, session, SystemClock, { marketState(it, session) }, planFile)
+                val eng = Engine(stocks, series, ctx, session, SystemClock, { marketState(it, session) }, planFile, account)
                 eng.start(this)
                 engine.value = eng
                 status.value = Status("upstox", "ready", "Upstox")

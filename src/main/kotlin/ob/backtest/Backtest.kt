@@ -22,6 +22,7 @@ import ob.market.Series
 import ob.marketState
 import ob.sessionCloseSec
 import ob.sessionOpenSec
+import ob.trade.Sizing
 import ob.upstox.Upstox
 import ob.web.json
 import java.io.File
@@ -30,9 +31,7 @@ import java.time.LocalDate
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 import kotlin.math.abs
-import kotlin.math.floor
 import kotlin.math.max
-import kotlin.math.min
 
 /*
  * Replays past sessions through the live engine, minute by minute, from Upstox's 1-minute history: the same picks,
@@ -53,8 +52,7 @@ import kotlin.math.min
  * to data/experiments.txt.
  */
 
-private const val MARGIN = 0.20          // intraday margin as a share of position value
-private const val MAX_BROKERAGE = 20.0   // per executed order, or 0.1% if lower
+private const val MARGIN = Sizing.MARGIN
 private val CACHE = File("data/cache")
 
 private class Trade(val day: LocalDate, val ps: PlanState) {
@@ -253,56 +251,17 @@ private fun replay(stocks: List<Stock>, daily: Map<String, List<Candle>>, bars: 
 
 /* ---------- sizing: what a real account could have done with those plans ---------- */
 
-/** Sizes each filled plan in time order: risk % of current equity, capped by the margin still free. */
+/** The account's own arithmetic (trade/Sizing.kt), so the backtest and the live Plans page agree to the rupee. */
 private fun simulate(filled: List<Trade>, capital: Double, riskPct: Double, minRisk: Double = 0.0) {
-    val open = ArrayList<Pair<Trade, Double>>()   // trade, margin it blocks
-    for (t in filled.sortedBy { it.ps.filledT }) {
-        val at = t.ps.filledT!!
-        open.removeAll { (o, _) -> o.ps.exitT!! <= at }
-        val realised = filled.filter { it.qty > 0 && it.ps.exitT!! <= at }.sumOf { it.net }
-        val equity = capital + realised
-        val used = open.sumOf { it.second }
-        val fill = t.ps.fill!!
-        val perShare = abs(fill - t.p.stop)
-        val byRisk = floor(equity * riskPct / 100 / perShare).toInt()
-        val byMargin = floor((equity - used) / (fill * MARGIN)).toInt()
-        t.qty = max(0, min(byRisk, byMargin))
-        if (t.qty < 1) {
-            t.skipped = if (byRisk < 1) "risk too small for 1 share" else "not enough free margin"
-            continue
-        }
-        if (t.qty * perShare < minRisk) {
-            t.qty = 0
-            t.skipped = "could only risk ${inr(min(byRisk, byMargin) * perShare)}, under ${inr(minRisk)}"
-            continue
-        }
-        if (byMargin < byRisk) t.skipped = "cut from $byRisk to ${t.qty} shares by margin"
-        t.risked = t.qty * perShare
-        legs(t, fill)
-        open += t to t.qty * fill * MARGIN
+    val sized = Sizing.sizeAll(filled.map { it.ps }, capital, riskPct, minRisk)
+    for (t in filled) {
+        val z = sized[t.p.id] ?: continue
+        t.qty = z.qty
+        t.risked = z.risked
+        t.gross = z.gross
+        t.costs = z.costs
+        t.skipped = z.note
     }
-}
-
-/** Gross result and charges from the actual legs: half at T1 when the plan scales out, the rest at the exit. */
-private fun legs(t: Trade, fill: Double) {
-    val half = if (Rules.TARGET == "half" && t.ps.t1Hit && t.qty >= 2) t.qty / 2 else 0
-    val rest = t.qty - half
-    val exit = t.ps.exitPrice ?: fill
-    val dir = if (t.buy) 1 else -1
-    t.gross = dir * (half * (t.p.t1 - fill) + rest * (exit - fill))
-    val entryValue = t.qty * fill
-    val exitLegs = listOfNotNull(if (half > 0) half * t.p.t1 else null, rest * exit)
-    val exitValue = exitLegs.sum()
-    val brokerage = (listOf(entryValue) + exitLegs).sumOf { min(MAX_BROKERAGE, it * 0.001) }
-    val buyValue = if (t.buy) entryValue else exitValue
-    val sellValue = if (t.buy) exitValue else entryValue
-    val turnover = buyValue + sellValue
-    val stt = sellValue * 0.00025
-    val exchange = turnover * 0.0000297
-    val sebi = turnover * 0.000001
-    val stamp = buyValue * 0.00003
-    val gst = (brokerage + exchange + sebi) * 0.18
-    t.costs = brokerage + stt + exchange + sebi + stamp + gst
 }
 
 /* ---------- results ---------- */

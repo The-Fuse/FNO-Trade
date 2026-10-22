@@ -16,6 +16,8 @@ import ob.Stock
 import ob.bucket
 import ob.istMinuteOfDay
 import ob.market.Series
+import ob.trade.Account
+import ob.trade.AccountView
 import ob.market.aggregate
 import ob.r2
 import ob.sessionOpenSec
@@ -82,6 +84,7 @@ data class Board(
     val dots: List<Dot>,
     val plans: List<PlanState>,
     val scorecard: Scorecard,
+    val account: AccountView? = null,
 )
 
 /** Latest price and % change per symbol, pushed every couple of seconds between board refreshes. */
@@ -123,6 +126,7 @@ class Engine(
     private val clock: MarketClock,
     private val market: (Long) -> MarketState,
     planFile: File? = null,
+    private val account: Account? = null,
 ) {
     companion object {
         const val TOP = 20
@@ -344,7 +348,8 @@ class Engine(
 
         val minuteStart = s.nowSec - Math.floorMod(s.nowSec, 60L)
         (bullish + bearish).filter { it.pick != null && it.advice.action in TRADE }.forEach { book.ensure(it, minuteStart) }
-        val plans = planStates()
+        val unsized = planStates()
+        val (plans, acct) = account?.sizeDay(session, unsized) ?: (unsized to null)
 
         val sectors = s.all.groupBy { it.stock.sector }.map { (name, xs) ->
             SectorRow(
@@ -374,6 +379,7 @@ class Engine(
             dots = s.all.map { Dot(it.stock.symbol, r2(it.chg)) },
             plans = plans,
             scorecard = Plans.scorecard(plans),
+            account = acct,
         )
     }
 
@@ -391,6 +397,11 @@ class Engine(
             out[st.symbol] = Profile.path(aggregate(se.minutes()), cx.prevClose)
         }
         return FlowData(sessionOpenSec(session), 300, clock.nowMs() / 1000, out).also { flowCache = it }
+    }
+
+    /** Rebuilds the board now, e.g. after the account settings change. */
+    fun refresh() {
+        board.value = computeBoard(clock.nowMs())
     }
 
     fun chart(symbol: String): Chart? {
@@ -424,7 +435,9 @@ class Engine(
             vwap = Profile.vwapLine(minutes),
             zones = a.zones,
             liquidity = a.liquidity,
-            plan = planStates(symbol).firstOrNull(),
+            plan = planStates(symbol).firstOrNull()?.let { fresh ->
+                fresh.copy(size = board.value?.plans?.firstOrNull { it.plan.id == fresh.plan.id }?.size)
+            },
         )
     }
 }

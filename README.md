@@ -39,6 +39,8 @@ On the first start each day the server loads 50 sessions of daily history (cache
 
 A plan is made when the #1 pick on a side has a live order block, R:R ≥ 1:1.5, price on the right side of VWAP, within half a normal day of Z, at least 60% of F&O stocks moving the same way, before 2:30 PM. Entry is a limit at Z; the stop is just past the block and at least 1% from the entry; everything exits at T2 (T1 is only a checkpoint); anything still open closes at 3:15 PM. Position size is a % of capital at risk to the stop, capped by intraday margin; a trade that can't risk ₹250 is skipped.
 
+The Plans page keeps a **paper account** (`data/account.json`): trades are sized from its balance, each session's net result after charges is added, and the next session is sized from the new balance, exactly as the backtest does. Starting capital and risk per trade are set from the gear icon; *Start over* clears the history.
+
 Every rule is a dial in `engine/Rules.kt` (`PICKS`, `MIN_MARKET`, `MIN_STOP_PCT`, `TARGET`, `MIN_RR`, `FIRST_ENTRY_MIN`, `LAST_ENTRY_MIN`, `EXIT_MIN`, …) and can be overridden with the same names in `.env` or the environment.
 
 These defaults are what survived a backtest of 40 sessions (24 Aug – 21 Oct 2026): tuned on the first 30, checked on the last 10. For ₹10,000 at 4% risk per trade it made +31% over the 40 days after charges, with a worst drop of 9%. That is 38 trades, and 3 of them made most of the profit, so treat it as promising, not proven: paper-trade it on the Plans page before risking money.

@@ -8,6 +8,28 @@
   const tone = x => x > 0 ? 'pos' : x < 0 ? 'neg' : '';
   const pickWord = () => Number(OB.rules().PICKS || 1) === 1 ? 'the #1 pick on a side' : `a top-${OB.rules().PICKS} pick`;
 
+  /** Quantity and rupee result as the paper account took the plan (estimated from R before the account sizes it). */
+  function pnlCells(s) {
+    const z = s.size, res = s.r ?? s.openR;
+    if (!z) return `<td class="num">—</td><td class="num ${tone(res)}">${res == null ? '—' : fmt.inr(res * OB.riskAmount())}</td>`;
+    if (!z.qty) return `<td class="num muted" title="${esc(z.note || '')}">skip</td><td class="num muted" title="${esc(z.note || '')}">—</td>`;
+    const v = s.exitT ? z.net : (s.openR || 0) * z.risked;
+    return `<td class="num">${fmt.int(z.qty)}</td><td class="num ${tone(v)}">${fmt.inr(v)}${s.exitT ? '' : ' open'}</td>`;
+  }
+
+  /** The account day by day, newest first. */
+  function dayTable() {
+    const a = OB.account();
+    if (!a.days.length) return '<div class="empty">No days recorded yet.</div>';
+    let bal = a.balance;
+    const rows = [...a.days].reverse().map(d => {
+      const row = `<tr><td class="num">${esc(d.date)}</td><td class="num">${d.trades}</td><td class="num ${tone(d.net)}">${fmt.inr(d.net)}</td><td class="num">${fmt.inr(bal)}</td></tr>`;
+      bal -= d.net;
+      return row;
+    });
+    return `<table><thead><tr><th>Day</th><th class="num">Trades</th><th class="num">Net after charges</th><th class="num">Balance</th></tr></thead><tbody>${rows.join('')}</tbody></table>`;
+  }
+
   /** The strategy as the server runs it, in words. */
   function howItWorks() {
     const r = OB.rules(), hm = OB.hm;
@@ -24,29 +46,29 @@
       <li><b>Stop.</b> S1 (R1 when selling), just beyond the far side of the block${stop ? ` and at least ${stop}% from the entry` : ''}.</li>
       <li><b>Exit.</b> ${exit}</li>
       <li><b>Time.</b> No new entries after ${hm(Number(r.LAST_ENTRY_MIN || 870))}. Anything still open closes at ${hm(Number(r.EXIT_MIN || 915))}.</li>
-      <li><b>Size.</b> ${s.risk}% of ${fmt.inr(s.capital)} = ${fmt.inr(OB.riskAmount())} at risk per trade, capped by intraday margin (about 5×). A trade that can't risk at least ₹250 is skipped: the charges would eat it.</li>
+      <li><b>Size.</b> ${s.risk}% of the balance (${fmt.inr(OB.account().balance)} now) = ${fmt.inr(OB.riskAmount())} at risk per trade, capped by intraday margin (about 5×). A trade that can't risk at least ${fmt.inr(OB.account().minRisk)} is skipped: the charges would eat it. The balance carries over: each day's result after charges is added, and the next day is sized from it.</li>
       <li><b>Results</b> are in R, multiples of the planned risk. Rupee figures use your risk per trade (<a role="button" tabindex="0" data-open-settings style="cursor:pointer;text-decoration:underline">change</a>).</li>`;
   }
 
   function scoreTiles(sc) {
-    const risk = OB.riskAmount();
+    const a = OB.account();
     return [
+      ['Balance', fmt.inr(a.balance), tone(a.balance - a.capital)],
+      ['Today ₹', fmt.inr(a.realised), tone(a.realised)],
       ['Suggestions', sc.plans],
       ['Triggered', sc.triggered],
       ['Won', sc.wins, 'pos'],
       ['Lost', sc.losses, 'neg'],
       ['Open', sc.open],
       ['Net', fmt.r(sc.netR), tone(sc.netR)],
-      ['Net ₹', fmt.inr(sc.netR * risk), tone(sc.netR)],
     ].map(([k, v, c]) => `<div><span class="lbl">${k}</span><b class="${c || ''}">${v}</b></div>`).join('');
   }
 
   function plansTable(states, limit) {
     const rows = limit ? states.slice(0, limit) : states;
     if (!rows.length) return `<div class="empty">No suggestions yet today. A plan is made when ${pickWord()} has a tradeable setup.</div>`;
-    const risk = OB.riskAmount();
     return `<table><thead><tr><th>Time</th><th>Stock</th><th>Side</th><th class="num">Entry</th><th class="num">Stop</th>`
-      + `<th class="num">T1</th><th class="num">T2</th><th class="num">R:R</th><th>Status</th><th class="num">Result</th><th class="num">P&amp;L</th></tr></thead><tbody>`
+      + `<th class="num">T1</th><th class="num">T2</th><th class="num">R:R</th><th>Status</th><th class="num">Result</th><th class="num">Qty</th><th class="num">P&amp;L</th></tr></thead><tbody>`
       + rows.map(s => {
         const p = s.plan, res = s.r ?? s.openR, act = p.side === 'bull' ? 'BUY' : 'SELL';
         return `<tr data-pop="${esc(p.symbol)}">
@@ -57,7 +79,7 @@
           <td class="num">${fmt.num(p.t1)}</td><td class="num">${fmt.num(p.t2)}</td><td class="num">${fmt.rr(p.rr)}</td>
           <td><span class="status s-${s.status}">${statusText[s.status]}</span></td>
           <td class="num ${tone(res)}">${res == null ? '—' : fmt.r(res) + (s.r == null ? ' open' : '')}</td>
-          <td class="num ${tone(res)}">${res == null ? '—' : fmt.inr(res * risk)}</td>
+          ${pnlCells(s)}
         </tr>`;
       }).join('') + '</tbody></table>';
   }
@@ -98,7 +120,7 @@
     const rows = (side === 'bull' ? b.bullish : b.bearish).filter(r => r.pick).sort((x, y) => x.pick - y.pick);
     const word = side === 'bull' ? 'bullish' : 'bearish';
     return rows.map(r => pickCard(r, b)).join('')
-      + (rows.length < 3 ? `<div class="pick-none">${rows.length ? 'No more' : 'No'} ${word} picks right now. A pick needs a top-20 rank and a live order block.</div>` : '');
+      + (rows.length < Number(OB.rules().PICKS || 1) ? `<div class="pick-none">${rows.length ? 'No more' : 'No'} ${word} picks right now. A pick needs a top-20 rank and a live order block.</div>` : '');
   }
 
   OB.views.home = {
@@ -106,7 +128,7 @@
       const br = b.breadth;
       el.innerHTML = `<section class="home">
         <div class="hero">
-          <div><h1>Today's picks</h1><p>${esc(b.market.label)} · board at ${fmt.hhmm(b.t)} IST · top 3 per side, at most 2 from a sector · refreshed every minute</p></div>
+          <div><h1>Today's picks</h1><p>${esc(b.market.label)} · board at ${fmt.hhmm(b.t)} IST · ${Number(OB.rules().PICKS || 1)} pick${Number(OB.rules().PICKS || 1) === 1 ? '' : 's'} per side · refreshed every minute</p></div>
           <div class="score">${scoreTiles(b.scorecard)}</div>
         </div>
         <div class="picks">
@@ -138,6 +160,10 @@
           <div class="score">${scoreTiles(b.scorecard)}</div>
         </div>
         <div class="panel scroll-x">${plansTable(b.plans)}</div>
+        <div class="panel scroll-x">
+          <div class="t-head" style="padding:12px 14px 0"><span class="lbl">Account, day by day</span></div>
+          ${dayTable()}
+        </div>
         <div class="panel">
           <div class="t-head" style="padding:12px 14px 0"><span class="lbl">How a plan works</span></div>
           <ol class="rules">${howItWorks()}</ol>

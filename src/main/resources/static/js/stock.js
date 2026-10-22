@@ -234,6 +234,8 @@
       const bits = [`Suggested ${fmt.hhmm(p.plan.createdT)} at Z ${fmt.num(p.plan.entry)}`];
       if (p.filledT) bits.push(`filled ${fmt.hhmm(p.filledT)} at ${fmt.num(p.fill)}`);
       if (p.exitT && p.exitPrice != null) bits.push(`out ${fmt.hhmm(p.exitT)} at ${fmt.num(p.exitPrice)}`);
+      const z = p.size;
+      if (z) bits.push(z.qty ? `${fmt.int(z.qty)} shares, ${p.exitT ? `net ${fmt.inr(z.net)} after charges` : `risking ${fmt.inr(z.risked)}`}` : `not taken: ${z.note}`);
       const res = p.r != null ? ` · <b class="${p.r >= 0 ? 'pos' : 'neg'}">${fmt.r(p.r)}</b>`
         : p.openR != null ? ` · <b class="${p.openR >= 0 ? 'pos' : 'neg'}">${fmt.r(p.openR)} open</b>` : '';
       h += `<div class="track"><span class="status s-${p.status}">${statusText[p.status]}</span>${res}<div class="muted">${bits.join(' · ')}</div></div>`;

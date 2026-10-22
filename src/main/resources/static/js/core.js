@@ -57,29 +57,37 @@ window.OB = (() => {
 
   const buildUpTag = b => b ? `<span class="tag ${({ 'Long build-up': 'lb', 'Short covering': 'sc', 'Short build-up': 'sb', 'Long unwinding': 'lu' })[b] || ''}">${esc(b)}</span>` : '';
 
-  /* ---------- risk settings ---------- */
-  const MIN_RISK = 250;   // a trade that can't risk this much isn't worth its charges; the backtest skipped these
+  /* ---------- the paper account: kept on the server, its balance carries over day to day ---------- */
   const MARGIN = 0.2;     // intraday margin blocked, as a share of the position (5× leverage)
-  const settings = (() => {
-    const d = { capital: 10000, risk: 4 };
-    try { return { ...d, ...JSON.parse(localStorage.getItem('ob:settings') || '{}') }; } catch { return d; }
-  })();
-  const riskAmount = () => settings.capital * settings.risk / 100;
+  const noAccount = { capital: 10000, riskPct: 4, minRisk: 250, startOfDay: 10000, realised: 0, balance: 10000, days: [] };
+  const account = () => (state.board && state.board.account) || state.account || noAccount;
+  const settings = { get capital() { return account().capital; }, get risk() { return account().riskPct; } };
+  const riskAmount = () => account().balance * account().riskPct / 100;
 
-  /** Shares to trade: the risk budget at the stop, capped by what the margin allows. Too small to be worth it → skip. */
+  /** Shares for a new trade: the risk budget at the stop, capped by what the margin allows. Too small to be worth it → skip. */
   const sizing = (entry, stop) => {
+    const a = account();
     const per = Math.abs(entry - stop);
     if (!(per > 0) || !(entry > 0)) return { qty: 0, risk: 0, note: '', skip: true };
     const byRisk = Math.floor(riskAmount() / per);
-    const byMargin = Math.floor(settings.capital / (entry * MARGIN));
+    const byMargin = Math.floor(a.balance / (entry * MARGIN));
     const qty = Math.max(0, Math.min(byRisk, byMargin));
     const risk = qty * per;
     const note = qty < 1 ? 'Too expensive for this account'
-      : risk < MIN_RISK ? `Skip: it could only risk ${fmt.inr(risk)}, under ${fmt.inr(MIN_RISK)} the charges would eat it`
+      : risk < a.minRisk ? `Skip: it could only risk ${fmt.inr(risk)}, under ${fmt.inr(a.minRisk)} the charges would eat it`
       : byMargin < byRisk ? `capped by margin, position ${fmt.inr(qty * entry)}` : '';
-    return { qty, risk, note, skip: qty < 1 || risk < MIN_RISK };
+    return { qty, risk, note, skip: qty < 1 || risk < a.minRisk };
   };
   const qty = (entry, stop) => sizing(entry, stop).qty;
+
+  async function loadAccount() {
+    try { state.account = await (await fetch('/api/account')).json(); } catch { /* the board carries it too */ }
+  }
+  async function postAccount(path, body) {
+    const r = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) });
+    if (r.ok) state.account = await r.json();
+    render();
+  }
 
   /** The strategy's dials, as the server reports them. */
   const rules = () => (state.status && state.status.rules) || {};
@@ -89,20 +97,21 @@ window.OB = (() => {
   };
 
   function openSettings() {
-    const d = $('#settings');
-    d.querySelector('[name=capital]').value = settings.capital;
-    d.querySelector('[name=risk]').value = settings.risk;
+    const d = $('#settings'), a = account();
+    d.querySelector('[name=capital]').value = a.capital;
+    d.querySelector('[name=risk]').value = a.riskPct;
+    $('#settings-balance').textContent = `Balance now ${fmt.inr(a.balance)} · today ${fmt.inr(a.realised)} · ${a.days.length} day${a.days.length === 1 ? '' : 's'} recorded`;
     d.showModal();
   }
   $('#settings').addEventListener('close', () => {
     const d = $('#settings');
+    if (d.returnValue === 'reset') {
+      if (confirm('Clear the day history and start again from the starting capital?')) postAccount('/api/account/reset');
+      return;
+    }
     if (d.returnValue !== 'save') return;
     const c = Number(d.querySelector('[name=capital]').value), r = Number(d.querySelector('[name=risk]').value);
-    if (c > 0) settings.capital = c;
-    if (r > 0) settings.risk = Math.min(r, 5);
-    try { localStorage.setItem('ob:settings', JSON.stringify(settings)); } catch { /* private mode */ }
-    emit('settings', settings);
-    render();
+    postAccount('/api/account', { capital: c > 0 ? c : undefined, riskPct: r > 0 ? Math.min(r, 5) : undefined });
   });
 
   /* ---------- theme ---------- */
@@ -344,12 +353,13 @@ window.OB = (() => {
   });
   window.addEventListener('hashchange', route);
   document.addEventListener('DOMContentLoaded', () => {
+    loadAccount();
     route();
     connect();
   });
 
   return {
     $, $$, IST, fmt, esc, initials, col, rgba, on, emit, state, names, kindText, statusText, buildUpTag,
-    settings, riskAmount, qty, sizing, rules, hm, spark, conv, profile, views, render, openSettings,
+    settings, account, riskAmount, qty, sizing, rules, hm, spark, conv, profile, views, render, openSettings,
   };
 })();
