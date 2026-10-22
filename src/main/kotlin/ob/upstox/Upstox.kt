@@ -66,6 +66,19 @@ class Upstox(private val cfg: Config) {
     var token: String? = null
         private set
 
+    @Volatile
+    private var issuedMs = 0L
+
+    /** Upstox ends every login at the next 3:30 AM IST. */
+    fun loggedIn(nowMs: Long = System.currentTimeMillis()) = token != null && nowMs < expiry(issuedMs)
+
+    private fun expiry(issued: Long): Long {
+        val at = Instant.ofEpochMilli(issued).atZone(IST)
+        val cutoff = LocalTime.of(3, 30)
+        val day = if (at.toLocalTime() < cutoff) at.toLocalDate() else at.toLocalDate().plusDays(1)
+        return day.atTime(cutoff).atZone(IST).toInstant().toEpochMilli()
+    }
+
     fun loginUrl(): String =
         "$API/v2/login/authorization/dialog?response_type=code&client_id=${enc(cfg.apiKey)}&redirect_uri=${enc(cfg.redirectUri)}"
 
@@ -74,11 +87,9 @@ class Upstox(private val cfg: Config) {
         if (!tokenFile.exists()) return false
         val o = runCatching { Json.parseToJsonElement(tokenFile.readText()).jsonObject }.getOrNull() ?: return false
         val issued = o["issuedMs"]?.jsonPrimitive?.long ?: return false
-        val at = Instant.ofEpochMilli(issued).atZone(IST)
-        val cutoff = LocalTime.of(3, 30)
-        val expires = (if (at.toLocalTime() < cutoff) at.toLocalDate() else at.toLocalDate().plusDays(1)).atTime(cutoff).atZone(IST)
-        if (System.currentTimeMillis() >= expires.toInstant().toEpochMilli()) return false
+        if (System.currentTimeMillis() >= expiry(issued)) return false
         token = o["token"]?.jsonPrimitive?.content
+        issuedMs = issued
         return token != null
     }
 
@@ -97,9 +108,11 @@ class Upstox(private val cfg: Config) {
         if (!r.status.isSuccess()) throw UpstoxAuthException("Upstox login failed (${r.status.value}): ${text.take(300)}")
         val t = Json.parseToJsonElement(text).jsonObject["access_token"]?.jsonPrimitive?.content
             ?: throw UpstoxAuthException("Upstox returned no access_token")
+        val now = System.currentTimeMillis()
         token = t
+        issuedMs = now
         tokenFile.parentFile?.mkdirs()
-        tokenFile.writeText(buildJsonObject { put("token", t); put("issuedMs", System.currentTimeMillis()) }.toString())
+        tokenFile.writeText(buildJsonObject { put("token", t); put("issuedMs", now) }.toString())
     }
 
     @Serializable

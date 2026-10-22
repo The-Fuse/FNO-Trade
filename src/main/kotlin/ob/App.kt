@@ -5,8 +5,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -31,6 +34,9 @@ class App(private val cfg: Config) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var pipeline: Job? = null
 
+    @Volatile
+    private var holidays: Set<LocalDate> = emptySet()
+
     val status = MutableStateFlow(Status(cfg.feed, "starting", "Starting"))
     val engine = MutableStateFlow<Engine?>(null)
     val upstox: Upstox? = if (cfg.feed == "upstox") Upstox(cfg) else null
@@ -41,8 +47,10 @@ class App(private val cfg: Config) {
             api == null -> runSim()
             cfg.apiKey.isBlank() || cfg.apiSecret.isBlank() ->
                 status.value = Status("upstox", "error", "Set UPSTOX_API_KEY and UPSTOX_API_SECRET in .env, then restart")
-            api.loadToken() -> runUpstox(api)
-            else -> askLogin("Connect your Upstox account to load market data.")
+            else -> {
+                if (api.loadToken()) runUpstox(api) else askLogin("Connect your Upstox account to load market data.")
+                watchSessions(api)
+            }
         }
     }
 
@@ -60,24 +68,36 @@ class App(private val cfg: Config) {
         status.value = Status(cfg.feed, "loading", message)
     }
 
+    /** The simulator plays a whole day at SIM_SPEED; a minute after its close a new simulated day starts. */
     private fun runSim() {
         pipeline = scope.launch {
-            val date = sessionDate(System.currentTimeMillis(), emptySet())
-            val sim = SimMarket(Sectors.simStocks(), date, cfg.simStart, cfg.simSpeed)
-            val stocks = Sectors.simStocks().map { it.copy(lot = sim.lots[it.symbol] ?: 0) }
-            val series = stocks.associate { it.symbol to Series(it, sessionOpenSec(date), sessionCloseSec(date)) }
-            sim.advanceTo(sim.nowMs(), series)
-            val ctx = sim.daily.mapNotNull { (sym, bars) ->
-                Strength.context(bars)?.let { sym to it.copy(prevOi = sim.prevOi[sym]) }
-            }.toMap()
-            val speed = if (cfg.simSpeed % 1.0 == 0.0) cfg.simSpeed.toLong().toString() else cfg.simSpeed.toString()
-            val label = "Simulated ${speed}×"
-            val eng = Engine(stocks, series, ctx, date, sim, { marketState(it, date, label) })
-            eng.start(this)
-            engine.value = eng
-            status.value = Status("sim", "ready", label)
-            sim.run(series)
+            var seed = 11L
+            while (isActive) {
+                simDay(seed)
+                seed = System.currentTimeMillis()
+            }
         }
+    }
+
+    private suspend fun simDay(seed: Long) = coroutineScope {
+        val date = sessionDate(System.currentTimeMillis(), emptySet())
+        val sim = SimMarket(Sectors.simStocks(), date, cfg.simStart, cfg.simSpeed, seed)
+        val stocks = Sectors.simStocks().map { it.copy(lot = sim.lots[it.symbol] ?: 0) }
+        val series = stocks.associate { it.symbol to Series(it, sessionOpenSec(date), sessionCloseSec(date)) }
+        sim.advanceTo(sim.nowMs(), series)
+        val ctx = sim.daily.mapNotNull { (sym, bars) ->
+            Strength.context(bars)?.let { sym to it.copy(prevOi = sim.prevOi[sym]) }
+        }.toMap()
+        val speed = if (cfg.simSpeed % 1.0 == 0.0) cfg.simSpeed.toLong().toString() else cfg.simSpeed.toString()
+        val label = "Simulated ${speed}×"
+        val eng = Engine(stocks, series, ctx, date, sim, { marketState(it, date, label) })
+        eng.start(this)
+        engine.value = eng
+        status.value = Status("sim", "ready", label)
+        launch { sim.run(series) }
+        while (sim.nowMs() < sessionCloseSec(date) * 1000) delay(1_000)
+        delay(60_000)
+        coroutineContext.cancelChildren()
     }
 
     private fun runUpstox(api: Upstox) {
@@ -87,7 +107,7 @@ class App(private val cfg: Config) {
             try {
                 loading("Loading the F&O stock list")
                 val stocks = api.fnoStocks()
-                val holidays = try {
+                holidays = try {
                     api.holidays()
                 } catch (e: UpstoxAuthException) {
                     throw e
@@ -118,7 +138,6 @@ class App(private val cfg: Config) {
                 eng.start(this)
                 engine.value = eng
                 status.value = Status("upstox", "ready", "Upstox")
-                scheduleNextSession(session, holidays)
 
                 if (today && istMinuteOfDay(System.currentTimeMillis()) < CLOSE_MIN) {
                     val byKey = stocks.associate { it.key to series.getValue(it.symbol) }
@@ -137,15 +156,20 @@ class App(private val cfg: Config) {
         }
     }
 
-    /** Showing an old session before a trading day's pre-open: reload into today's session at 9:00. */
-    private fun scheduleNextSession(session: LocalDate, holidays: Set<LocalDate>) {
-        val nowMs = System.currentTimeMillis()
-        val today = istDate(nowMs)
-        if (session == today || !isTradingDay(today, holidays) || istMinuteOfDay(nowMs) >= PREOPEN_MIN) return
-        val at = today.atTime(9, 0).atZone(IST).toInstant().toEpochMilli()
-        scope.launch {
-            delay(at - nowMs)
-            upstox?.let(::runUpstox)
+    /**
+     * Keeps a server that runs for days on the right session: after Upstox's 3:30 AM logout it asks to connect
+     * again, and from 9:00 on a trading day it reloads into that day.
+     */
+    private fun watchSessions(api: Upstox) = scope.launch {
+        while (isActive) {
+            delay(30_000)
+            if (status.value.state != "ready") continue
+            if (!api.loggedIn()) {
+                askLogin("Upstox logs everyone out at 3:30 AM. Connect again to load today's market.")
+                continue
+            }
+            val shown = engine.value?.session ?: continue
+            if (sessionDate(System.currentTimeMillis(), holidays) != shown) runUpstox(api)
         }
     }
 
