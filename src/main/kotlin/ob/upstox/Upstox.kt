@@ -188,9 +188,16 @@ class Upstox(private val cfg: Config) {
         repeat(5) { attempt ->
             pace()
             val t = token ?: throw UpstoxAuthException("Not logged in to Upstox")
-            val r = http.get(url) {
-                header(HttpHeaders.Authorization, "Bearer $t")
-                accept(ContentType.Application.Json)
+            val r = try {
+                http.get(url) {
+                    header(HttpHeaders.Authorization, "Bearer $t")
+                    accept(ContentType.Application.Json)
+                }
+            } catch (e: IOException) {
+                // a dropped or timed-out connection: wait and try again, up to the attempt limit
+                if (attempt == 4) throw e
+                delay(1000L shl attempt)
+                return@repeat
             }
             when {
                 r.status == HttpStatusCode.Unauthorized -> throw UpstoxAuthException("Upstox session expired; log in again")

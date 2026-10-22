@@ -41,7 +41,9 @@ object Levels {
         val live = a.zones.filter { it.brokenT == null && it.side == side && (if (bull) it.lo < ltp else it.hi > ltp) }
         val zone = live.maxByOrNull { it.formedT } ?: return null
         val z = zone.body
-        val stop = r2(if (bull) zone.lo - buffer(ltp) else zone.hi + buffer(ltp))
+        var stop = r2(if (bull) zone.lo - buffer(ltp) else zone.hi + buffer(ltp))
+        val minRisk = z * Rules.MIN_STOP_PCT / 100
+        if (minRisk > 0) stop = r2(if (bull) min(stop, z - minRisk) else max(stop, z + minRisk))
         val risk = abs(z - stop)
         if (risk <= 0) return null
         val tol = ltp * 0.001

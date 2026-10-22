@@ -15,13 +15,19 @@ data class Config(
     val password: String?,
 )
 
-/** Environment variables win over a local .env file. */
-fun loadConfig(): Config {
-    val file = File(".env").takeIf { it.exists() }?.readLines().orEmpty()
+/** A setting from the environment, else from a local .env file. */
+fun envValue(k: String): String? = System.getenv(k)?.takeIf { it.isNotBlank() } ?: dotEnv[k]?.takeIf { it.isNotBlank() }
+
+private val dotEnv: Map<String, String> by lazy {
+    File(".env").takeIf { it.exists() }?.readLines().orEmpty()
         .map { it.trim() }
         .filter { it.isNotEmpty() && !it.startsWith("#") && '=' in it }
         .associate { it.substringBefore('=').trim() to it.substringAfter('=').trim().removeSurrounding("\"") }
-    fun v(k: String) = System.getenv(k)?.takeIf { it.isNotBlank() } ?: file[k]?.takeIf { it.isNotBlank() }
+}
+
+/** Environment variables win over a local .env file. */
+fun loadConfig(): Config {
+    val v = ::envValue
 
     val key = v("UPSTOX_API_KEY") ?: ""
     val port = v("PORT")?.toInt() ?: 8080

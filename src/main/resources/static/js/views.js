@@ -6,6 +6,27 @@
 
   /* ---------- shared pieces ---------- */
   const tone = x => x > 0 ? 'pos' : x < 0 ? 'neg' : '';
+  const pickWord = () => Number(OB.rules().PICKS || 1) === 1 ? 'the #1 pick on a side' : `a top-${OB.rules().PICKS} pick`;
+
+  /** The strategy as the server runs it, in words. */
+  function howItWorks() {
+    const r = OB.rules(), hm = OB.hm;
+    const market = Math.round(Number(r.MIN_MARKET || 0) * 100);
+    const stop = Number(r.MIN_STOP_PCT || 0);
+    const mode = r.TARGET || 'half';
+    const exit = mode === 't2' ? 'Exit everything at the second target; the first is only a checkpoint.'
+      : mode === 't1' ? 'Exit everything at the first target.'
+      : 'Book half at the first target and move the stop to entry; exit the rest at the second target.';
+    const s = OB.settings;
+    return `
+      <li><b>When.</b> A stock becomes ${pickWord()} with a live order block, R:R of at least 1:${r.MIN_RR || 1.5}, price on the right side of VWAP${market ? ` and at least ${market}% of the market moving the same way` : ''}, between ${hm(Number(r.FIRST_ENTRY_MIN || 555))} and ${hm(Number(r.LAST_ENTRY_MIN || 870))}.</li>
+      <li><b>Entry.</b> A limit order at Z, the order block's body edge. If price never comes back to it, there is no trade.</li>
+      <li><b>Stop.</b> S1 (R1 when selling), just beyond the far side of the block${stop ? ` and at least ${stop}% from the entry` : ''}.</li>
+      <li><b>Exit.</b> ${exit}</li>
+      <li><b>Time.</b> No new entries after ${hm(Number(r.LAST_ENTRY_MIN || 870))}. Anything still open closes at ${hm(Number(r.EXIT_MIN || 915))}.</li>
+      <li><b>Size.</b> ${s.risk}% of ${fmt.inr(s.capital)} = ${fmt.inr(OB.riskAmount())} at risk per trade, capped by intraday margin (about 5×). A trade that can't risk at least ₹250 is skipped: the charges would eat it.</li>
+      <li><b>Results</b> are in R, multiples of the planned risk. Rupee figures use your risk per trade (<a role="button" tabindex="0" data-open-settings style="cursor:pointer;text-decoration:underline">change</a>).</li>`;
+  }
 
   function scoreTiles(sc) {
     const risk = OB.riskAmount();
@@ -22,7 +43,7 @@
 
   function plansTable(states, limit) {
     const rows = limit ? states.slice(0, limit) : states;
-    if (!rows.length) return '<div class="empty">No suggestions yet today. A plan is made when a top-3 pick has a tradeable setup.</div>';
+    if (!rows.length) return `<div class="empty">No suggestions yet today. A plan is made when ${pickWord()} has a tradeable setup.</div>`;
     const risk = OB.riskAmount();
     return `<table><thead><tr><th>Time</th><th>Stock</th><th>Side</th><th class="num">Entry</th><th class="num">Stop</th>`
       + `<th class="num">T1</th><th class="num">T2</th><th class="num">R:R</th><th>Status</th><th class="num">Result</th><th class="num">P&amp;L</th></tr></thead><tbody>`
@@ -119,14 +140,7 @@
         <div class="panel scroll-x">${plansTable(b.plans)}</div>
         <div class="panel">
           <div class="t-head" style="padding:12px 14px 0"><span class="lbl">How a plan works</span></div>
-          <ol class="rules">
-            <li><b>When.</b> A stock becomes a top-3 pick on its side with a live order block, R:R of at least 1:1.5 and price on the right side of VWAP, before 2:30 PM.</li>
-            <li><b>Entry.</b> A limit order at Z, the order block's body edge. If price never comes back to it, there is no trade.</li>
-            <li><b>Stop.</b> S1 (R1 when selling), just beyond the far side of the block.</li>
-            <li><b>Exit.</b> Book half at the first target and move the stop to entry; exit the rest at the second target.</li>
-            <li><b>Time.</b> No new entries after 2:30 PM. Anything still open closes at 3:15 PM.</li>
-            <li><b>Results</b> are in R, multiples of the planned risk. Rupee figures use your risk per trade, ${fmt.inr(OB.riskAmount())} (<a role="button" tabindex="0" data-open-settings style="cursor:pointer;text-decoration:underline">change</a>).</li>
-          </ol>
+          <ol class="rules">${howItWorks()}</ol>
         </div>
       </section>`;
     },

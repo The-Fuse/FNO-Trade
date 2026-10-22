@@ -88,11 +88,17 @@ object Plans {
             }
             if (status == "active") {
                 if (hit(p.stop, adverse)) { status = "stopped"; exitT = c.t; exitPx = if (hit(p.stop, c.o)) c.o else p.stop; break }
-                if (reached(p.t1, favorable)) {
-                    t1Hit = true
-                    status = "t1"
-                    if (reached(p.t2, favorable)) { status = "won"; exitT = c.t; exitPx = p.t2; break }
-                } else if (mod >= Rules.EXIT_MIN) { status = "closed"; exitT = c.t; exitPx = c.c; break }
+                if (reached(p.t1, favorable)) t1Hit = true
+                when (Rules.TARGET) {
+                    "t1" -> if (t1Hit) { status = "won"; exitT = c.t; exitPx = p.t1; break }
+                    "t2" -> if (reached(p.t2, favorable)) { status = "won"; exitT = c.t; exitPx = p.t2; break }  // stop stays put
+                    else -> if (t1Hit) {
+                        status = "t1"
+                        if (reached(p.t2, favorable)) { status = "won"; exitT = c.t; exitPx = p.t2; break }
+                        continue
+                    }
+                }
+                if (mod >= Rules.EXIT_MIN) { status = "closed"; exitT = c.t; exitPx = c.c; break }
                 continue
             }
             // t1: the runner, with the stop at entry
@@ -103,11 +109,12 @@ object Plans {
 
         val risk = abs(p.entry - p.stop)
         fun r(px: Double) = (if (bull) px - fill else fill - px) / risk
+        val half = Rules.TARGET == "half"
         val result = when (status) {
             "stopped" -> r(exitPx!!)
-            "won" -> 0.5 * r(p.t1) + 0.5 * r(p.t2)
+            "won" -> if (half) 0.5 * r(p.t1) + 0.5 * r(p.t2) else r(exitPx!!)
             "breakeven" -> 0.5 * r(p.t1) + 0.5 * r(p.entry)
-            "closed" -> if (t1Hit) 0.5 * r(p.t1) + 0.5 * r(exitPx!!) else r(exitPx!!)
+            "closed" -> if (half && t1Hit) 0.5 * r(p.t1) + 0.5 * r(exitPx!!) else r(exitPx!!)
             else -> null
         }
         val open = when (status) {

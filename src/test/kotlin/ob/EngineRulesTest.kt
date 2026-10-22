@@ -6,6 +6,8 @@ import ob.engine.Levels
 import ob.engine.OrderBlocks
 import ob.engine.Rules
 import ob.engine.Strength
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -13,6 +15,10 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class EngineRulesTest {
+    // the level cases below describe the raw block levels; the live defaults widen stops and filter by market
+    @BeforeTest fun rawLevels() = Rules.configure { mapOf("MIN_STOP_PCT" to "0", "MIN_MARKET" to "0", "PICKS" to "3")[it] }
+    @AfterTest fun restore() = Rules.reset()
+
     private fun bars(vararg ohlc: Double): List<Candle> =
         ohlc.toList().chunked(4).mapIndexed { i, (o, h, l, c) -> Candle(i * 300L, o, h, l, c, 100) }
 
@@ -137,5 +143,25 @@ class EngineRulesTest {
         assertEquals(2.0, Strength.adrPct(daily), 1e-9)
         val cx = assertNotNull(Strength.context(daily))
         assertEquals(1.5, Strength.score(3.0, cx.adrPct), 1e-9)
+    }
+
+    @Test
+    fun `a minimum stop distance widens tight stops and the targets follow`() {
+        Rules.configure { mapOf("MIN_STOP_PCT" to "2.0")[it] }
+        val a = OrderBlocks.analyze(rally + Candle(8 * 300L, 103.5, 104.0, 102.9, 103.8))
+        val day = DayLevels(100.0, 0, 104.0, 8 * 300L, 99.5, 0, 99.0)
+        val s = assertNotNull(Levels.setup(a, true, 103.8, day))
+        assertEquals(98.78, s.stop)   // 2% under Z (100.8) instead of a tick under the block
+        assertEquals(2.0, s.rr)       // the projected second target moves out with the wider risk
+    }
+
+    @Test
+    fun `no trade against the market`() {
+        Rules.configure { mapOf("MIN_MARKET" to "0.6")[it] }
+        val a = OrderBlocks.analyze(rally + Candle(8 * 300L, 103.5, 104.0, 102.9, 103.8))
+        val day = DayLevels(100.0, 0, 104.0, 8 * 300L, 99.5, 0, 99.0)
+        val s = assertNotNull(Levels.setup(a, true, 103.8, day))
+        assertEquals("WAIT", Rules.advice(true, false, s, 103.8, 102.0, 10 * 60, 0.3, marketWith = 0.5).action)
+        assertEquals("BUY", Rules.advice(true, false, s, 103.8, 102.0, 10 * 60, 0.3, marketWith = 0.7).action)
     }
 }

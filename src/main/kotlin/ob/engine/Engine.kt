@@ -285,6 +285,8 @@ class Engine(
             advice = Rules.advice(
                 bull, event, setup, l.ltp, vwap, s.minute,
                 distAdr = setup?.let { abs(l.ltp - it.z) / (l.ltp * l.cx.adrPct / 100) } ?: 0.0,
+                conv = conv,
+                marketWith = if (bull) s.upShare else s.downShare,
             ),
             path = Profile.path(five, l.cx.prevClose),
             profile = Profile.volume(minutes),

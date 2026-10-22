@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import ob.engine.Engine
+import ob.engine.Rules
 import ob.engine.Strength
 import ob.market.Series
 import ob.sim.SimMarket
@@ -26,7 +27,13 @@ import java.io.File
 import java.time.LocalDate
 
 @Serializable
-data class Status(val feed: String, val state: String, val message: String = "", val needsLogin: Boolean = false)
+data class Status(
+    val feed: String,
+    val state: String,
+    val message: String = "",
+    val needsLogin: Boolean = false,
+    val rules: Map<String, String> = Rules.dials(),   // the strategy's dials, so the UI describes what it's doing
+)
 
 /** Picks the feed, loads the session, and keeps one [Engine] running for the UI. */
 class App(private val cfg: Config) {

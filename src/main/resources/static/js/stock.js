@@ -212,15 +212,22 @@
       const risk = Math.abs(s.z - s.stop);
       const multiple = p => (Math.abs(p - s.z) / risk).toFixed(1) + 'R';
       const live = a.action === 'BUY' || a.action === 'SELL';
+      const rules = OB.rules();
+      const mode = rules.TARGET || 'half';
+      const tgt = i => `${n.t[i]} <span class="num">${fmt.num(s.targets[i].price)}</span> (${multiple(s.targets[i].price)}, ${kindText(s.targets[i].kind)})`;
+      const exits = mode === 't2' ? `<li><b>Checkpoint</b>${tgt(0)}: no action</li><li><b>Target</b>${tgt(1)}: exit everything</li>`
+        : mode === 't1' ? `<li><b>Target</b>${tgt(0)}: exit everything</li><li><b>Beyond</b>${tgt(1)}: not used</li>`
+        : `<li><b>Target 1</b>${tgt(0)}: book half, move stop to entry</li><li><b>Target 2</b>${tgt(1)}: exit the rest</li>`;
       h += `<ol class="steps ${live ? '' : 'off'}">
         <li><b>Entry</b>${n.verb} limit at Z <span class="num">${fmt.num(s.z)}</span> when price comes back to the zone</li>
-        <li><b>Stop</b>${n.stop} <span class="num">${fmt.num(s.stop)}</span> · risk <span class="num">${fmt.num(risk)}</span> a share</li>
-        <li><b>Target 1</b>${n.t[0]} <span class="num">${fmt.num(s.targets[0].price)}</span> (${multiple(s.targets[0].price)}, ${kindText(s.targets[0].kind)}): book half, move stop to entry</li>
-        <li><b>Target 2</b>${n.t[1]} <span class="num">${fmt.num(s.targets[1].price)}</span> (${multiple(s.targets[1].price)}, ${kindText(s.targets[1].kind)}): exit the rest</li>
-        <li><b>Time</b>No entry after 2:30 PM · exit everything by 3:15 PM</li>
+        <li><b>Stop</b>${n.stop} <span class="num">${fmt.num(s.stop)}</span> · risk <span class="num">${fmt.num(risk)}</span> a share (${fmt.pct(risk / s.z * 100).replace('+', '')} of price)</li>
+        ${exits}
+        <li><b>Time</b>No entry after ${OB.hm(Number(rules.LAST_ENTRY_MIN || 870))} · exit everything by ${OB.hm(Number(rules.EXIT_MIN || 915))}</li>
       </ol>`;
+      const sz = OB.sizing(s.z, s.stop);
       const lot = r.lot ? ` · 1 lot = ${fmt.int(r.lot)} shares, risk ${fmt.inr(r.lot * risk)} a lot` : '';
-      h += `<div class="size">For ${fmt.inr(OB.riskAmount())} risk: <b>${fmt.int(OB.qty(s.z, s.stop))} shares</b>${lot}<button data-open-settings>Change</button></div>`;
+      h += `<div class="size">${sz.skip ? `<b class="neg">${esc(sz.note)}</b>`
+        : `For ${fmt.inr(OB.riskAmount())} risk: <b>${fmt.int(sz.qty)} shares</b>, risking ${fmt.inr(sz.risk)}${sz.note ? ' · ' + esc(sz.note) : ''}`}${lot}<button data-open-settings>Change</button></div>`;
     }
     const p = c.plan;
     if (p) {

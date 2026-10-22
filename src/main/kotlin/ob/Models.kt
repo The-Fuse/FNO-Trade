@@ -11,6 +11,7 @@ data class Candle(val t: Long, val o: Double, val h: Double, val l: Double, val 
  * An F&O stock. [key] is the feed's cash-market instrument key (Upstox: "NSE_EQ|<ISIN>"),
  * [futKey] its near-month future (for open interest), [lot] the futures lot size.
  */
+@Serializable
 data class Stock(val symbol: String, val name: String, val key: String, val sector: String, val lot: Int = 0, val futKey: String = "")
 
 /** What earlier sessions say about a stock: yesterday's levels, its normal daily range, yesterday's futures OI. */

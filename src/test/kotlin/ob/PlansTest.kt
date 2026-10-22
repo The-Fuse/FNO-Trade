@@ -2,12 +2,20 @@ package ob
 
 import ob.engine.Plan
 import ob.engine.Plans
+import ob.engine.Rules
 import java.time.LocalDate
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class PlansTest {
+    // these cases describe the scale-out exit; the live default exits everything at T2
+    @BeforeTest fun scaleOut() = Rules.configure { mapOf("TARGET" to "half")[it] }
+    @AfterTest fun restore() = Rules.reset()
+
     private val day = LocalDate.of(2026, 10, 16)
     private fun at(h: Int, m: Int) = day.atTime(h, m).atZone(IST).toEpochSecond()
     private fun bar(h: Int, m: Int, o: Double, hi: Double, lo: Double, c: Double) = Candle(at(h, m), o, hi, lo, c, 100)
@@ -78,5 +86,19 @@ class PlansTest {
         val open = Plans.replay(sell, listOf(bar(11, 0, 99.6, 100.1, 99.5, 99.8)), 99.5)
         assertEquals("active", open.status)
         assertEquals(0.5, open.openR)
+    }
+
+    @Test
+    fun `exit everything at T2 keeps the stop where it was after T1`() {
+        Rules.configure { mapOf("TARGET" to "t2")[it] }
+        // fills at 100, touches T1, then falls to the stop: a full 1R loss, not breakeven
+        val s = Plans.replay(buy, listOf(bar(10, 0, 100.4, 100.5, 99.9, 100.2), bar(10, 5, 101.0, 101.6, 100.9, 101.5), bar(10, 9, 100.0, 100.1, 98.9, 99.0)), 99.0)
+        assertEquals("stopped", s.status)
+        assertEquals(-1.0, s.r)
+        assertTrue(s.t1Hit)
+        // straight through both targets: the whole position goes at T2
+        val w = Plans.replay(buy, listOf(bar(10, 0, 100.4, 100.5, 99.9, 100.2), bar(10, 5, 101.0, 103.2, 100.9, 103.1)), 103.1)
+        assertEquals("won", w.status)
+        assertEquals(3.0, w.r)
     }
 }

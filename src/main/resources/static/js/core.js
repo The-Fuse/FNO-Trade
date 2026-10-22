@@ -58,14 +58,34 @@ window.OB = (() => {
   const buildUpTag = b => b ? `<span class="tag ${({ 'Long build-up': 'lb', 'Short covering': 'sc', 'Short build-up': 'sb', 'Long unwinding': 'lu' })[b] || ''}">${esc(b)}</span>` : '';
 
   /* ---------- risk settings ---------- */
+  const MIN_RISK = 250;   // a trade that can't risk this much isn't worth its charges; the backtest skipped these
+  const MARGIN = 0.2;     // intraday margin blocked, as a share of the position (5× leverage)
   const settings = (() => {
-    const d = { capital: 100000, risk: 1 };
+    const d = { capital: 10000, risk: 4 };
     try { return { ...d, ...JSON.parse(localStorage.getItem('ob:settings') || '{}') }; } catch { return d; }
   })();
   const riskAmount = () => settings.capital * settings.risk / 100;
-  const qty = (entry, stop) => {
+
+  /** Shares to trade: the risk budget at the stop, capped by what the margin allows. Too small to be worth it → skip. */
+  const sizing = (entry, stop) => {
     const per = Math.abs(entry - stop);
-    return per > 0 ? Math.floor(riskAmount() / per) : 0;
+    if (!(per > 0) || !(entry > 0)) return { qty: 0, risk: 0, note: '', skip: true };
+    const byRisk = Math.floor(riskAmount() / per);
+    const byMargin = Math.floor(settings.capital / (entry * MARGIN));
+    const qty = Math.max(0, Math.min(byRisk, byMargin));
+    const risk = qty * per;
+    const note = qty < 1 ? 'Too expensive for this account'
+      : risk < MIN_RISK ? `Skip: it could only risk ${fmt.inr(risk)}, under ${fmt.inr(MIN_RISK)} the charges would eat it`
+      : byMargin < byRisk ? `capped by margin, position ${fmt.inr(qty * entry)}` : '';
+    return { qty, risk, note, skip: qty < 1 || risk < MIN_RISK };
+  };
+  const qty = (entry, stop) => sizing(entry, stop).qty;
+
+  /** The strategy's dials, as the server reports them. */
+  const rules = () => (state.status && state.status.rules) || {};
+  const hm = m => {
+    const h = Math.floor(m / 60);
+    return `${h % 12 || 12}:${String(m % 60).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`;
   };
 
   function openSettings() {
@@ -330,6 +350,6 @@ window.OB = (() => {
 
   return {
     $, $$, IST, fmt, esc, initials, col, rgba, on, emit, state, names, kindText, statusText, buildUpTag,
-    settings, riskAmount, qty, spark, conv, profile, views, render, openSettings,
+    settings, riskAmount, qty, sizing, rules, hm, spark, conv, profile, views, render, openSettings,
   };
 })();

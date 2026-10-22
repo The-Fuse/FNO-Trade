@@ -38,6 +38,16 @@ tasks.named<JavaExec>("run") {
     workingDir = rootDir
 }
 
+// Replays past sessions with real Upstox minute data: ./gradlew backtest --args="--days 3 --capital 10000 --risk 5"
+tasks.register<JavaExec>("backtest") {
+    group = "application"
+    description = "Replays past sessions through the engine and sizes the trades for a small account"
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("ob.backtest.BacktestKt")
+    workingDir = rootDir
+    javaLauncher.set(javaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(21)) })
+}
+
 tasks.test {
     useJUnitPlatform()
 }
